@@ -48,11 +48,11 @@ export function GameCard({ game, highlight, onToggle }: Props) {
           </button>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-[oklch(0.5_0.27_305)]" />
+            <div className="flex items-start gap-1.5">
+              <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0 text-[oklch(0.5_0.27_305)]" />
               <h3
                 className={cn(
-                  "truncate font-semibold text-foreground",
+                  "min-w-0 font-semibold text-foreground",
                   done && "line-through text-muted-foreground",
                 )}
               >
