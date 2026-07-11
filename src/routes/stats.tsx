@@ -23,18 +23,10 @@ function StatsPage() {
   const streaks = useMemo(() => DataService.getStreaks(), []);
   const days = useMemo(() => DataService.getDayStats14(), []);
   const heat = useMemo(() => DataService.getHeatmap6w(), []);
-  const games = useMemo(() => DataService.getGames(), []);
+  const week = useMemo(() => DataService.getWeeklyActive(), []);
+  const byGame = useMemo(() => DataService.getGameCompletionRates(30), []);
 
   const maxDone = Math.max(1, ...days.map((d) => d.done));
-
-  // percent per game across last 30 days (mock: derived from priority)
-  const byGame = [...games]
-    .sort((a, b) => a.priority - b.priority)
-    .map((g) => ({
-      id: g.id,
-      title: g.title,
-      percent: Math.round(30 + ((g.priority * 17) % 65)),
-    }));
 
   return (
     <div>
@@ -74,7 +66,8 @@ function StatsPage() {
             label="Ядро закрыто"
             value={
               <>
-                5 <span className="text-base font-medium text-muted-foreground">из 7</span>
+                {week.active}{" "}
+                <span className="text-base font-medium text-muted-foreground">из {week.total}</span>
               </>
             }
             hint="неделя"
@@ -93,8 +86,8 @@ function StatsPage() {
             {days.map((d) => {
               const h = (d.done / maxDone) * 100;
               return (
-                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="flex h-full w-full items-end">
+                <div key={d.date} className="flex h-full flex-1 flex-col items-center gap-1">
+                  <div className="flex w-full flex-1 items-end">
                     <div
                       className="w-full rounded-t-lg bg-gradient-primary transition-all"
                       style={{ height: `${Math.max(6, h)}%` }}
@@ -119,7 +112,7 @@ function StatsPage() {
           <div className="space-y-3">
             {byGame.map((g) => (
               <div key={g.id} className="flex items-center gap-3">
-                <div className="w-1/2 truncate text-sm text-foreground">★ {g.title}</div>
+                <div className="w-1/2 text-sm text-foreground">★ {g.title}</div>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
                   <div
                     className="h-full rounded-full bg-gradient-primary"
