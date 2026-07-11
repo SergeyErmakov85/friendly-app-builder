@@ -1,14 +1,28 @@
 import { motion } from "framer-motion";
-import { Bed, Moon, Sun, Sunrise, TreePine, type LucideIcon } from "lucide-react";
+import {
+  Blocks,
+  Copy,
+  Ear,
+  Eye,
+  MessageCircle,
+  Mic,
+  Shapes,
+  Sparkles,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
 import type { Category, Game } from "@/lib/data/types";
 import { GameCard } from "./GameCard";
 
 const iconMap: Record<string, LucideIcon> = {
-  sunrise: Sunrise,
-  sun: Sun,
-  trees: TreePine,
-  moon: Moon,
-  bed: Bed,
+  messages: MessageCircle,
+  eye: Eye,
+  copy: Copy,
+  blocks: Blocks,
+  shapes: Shapes,
+  ear: Ear,
+  mic: Mic,
+  timer: Timer,
 };
 
 interface Props {
@@ -19,7 +33,7 @@ interface Props {
 }
 
 export function CategoryBlock({ category, games, highlightId, onToggle }: Props) {
-  const Icon = iconMap[category.icon] ?? Sun;
+  const Icon = iconMap[category.icon] ?? Sparkles;
   const done = games.filter((g) => g.status === "done").length;
   const totalMin = games.reduce((a, g) => a + g.durationMin, 0);
 

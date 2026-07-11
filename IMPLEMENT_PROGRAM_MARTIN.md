@@ -1,3 +1,119 @@
+# Инструкция: реализовать программу «Белая Ворона» (Мартин, июнь 2026)
+
+> **Как запускать.** Открой этот файл в Claude Code и скажи:
+> **«выполни инструкции из файла»**. Claude Code должен выполнить все шаги ниже
+> по порядку, ничего не пропуская, и в конце прогнать проверки из раздела
+> «Приёмка».
+
+## Цель
+
+Полностью внедрить в приложение реальную программу раннего вмешательства для
+Мартина (3 г 4 мес), составленную куратором Марией (центр «Белая Ворона», конец
+июня 2026). Программа состоит из **22 целей обучения**. Каждая цель получает
+карточку-занятие с полной методикой (цель, критерий успешности, метод, режим
+поощрения, подсказки, коррекция ошибок, этапы, инструкция «как проводить»).
+
+## Жёсткие ограничения (прочти до начала)
+
+1. **Не меняй внешний вид и дизайн.** Соблюдай `CLAUDE.md` (раздел «ДИЗАЙН — НЕ
+   МЕНЯТЬ»). Весь новый UI собирается только из существующих токенов
+   (`bg-gradient-primary`, `shadow-card/soft/glow`, `bg-surface`/`surface-2`,
+   `rounded-3xl`, Manrope) и из готовых компонентов `src/components/ui/*`.
+2. **Не трогай** `src/styles.css`, `routeTree.gen.ts`, визуальные классы
+   существующих компонентов и хедеров экранов.
+3. Все данные — **только через слой** `src/lib/data/*` (types → mock →
+   DataService). Никакого хардкода данных в компонентах.
+4. Не переписывай историю git (без force-push / rebase / amend), см. `AGENTS.md`.
+5. Всё на русском (`ru-RU`), mobile-first, контейнер `max-w-md`.
+
+## Что делаем по шагам
+
+- **Шаг 1.** Расширяем модель `Game` необязательными ABA-полями и заменяем
+  категории «время суток» на категории-домены навыков.
+- **Шаг 2.** Заменяем сид-данные `mock.ts` на 22 реальные цели программы.
+- **Шаг 3.** Добавляем иконки доменов в `CategoryBlock` (только карта иконок,
+  визуальный контейнер иконки не меняем).
+- **Шаг 4.** Добавляем экран-«шторку» с полной методикой (переиспользуем готовый
+  `Drawer`), и вешаем её на уже существующую кнопку ▶ карточки (вид кнопки не
+  меняем).
+- **Шаг 5.** Проверки и сборка.
+
+Экраны `index.tsx`, `stats.tsx`, `more.tsx` править **не нужно** — они читают
+данные обобщённо через `DataService` и продолжат работать. Аналитика на
+`/stats` пока остаётся демонстрационной (заглушки) — это ожидаемо.
+
+---
+
+## Шаг 1. Модель данных и категории
+
+Открой `src/lib/data/types.ts` и **замени его целиком** на следующий код. Мы
+добавляем ABA-поля как **необязательные**, чтобы существующие компоненты
+продолжали работать без изменений.
+
+```ts
+export type GameStatus = "todo" | "done";
+export type Difficulty = "easy" | "medium" | "hard";
+
+export interface HistoryEntry {
+  date: string; // ISO date
+  durationMin: number;
+}
+
+export interface Game {
+  id: string;
+  title: string;
+  description: string;
+  ageMin: number;
+  ageMax: number;
+  durationMin: number;
+  goal: string;
+  categoryId: string;
+  tags: string[];
+  difficulty: Difficulty;
+  priority: number;
+  icon: string;
+  instruction: string;
+  notes: string;
+  status: GameStatus;
+  history: HistoryEntry[];
+
+  // --- Поля ABA-программы (необязательные: старый UI работает без них) ---
+  successCriterion?: string; // Критерий успешности
+  method?: string; // Метод (NET / DTT / Shaping / ТУЕ / шейпинг / ...)
+  reinforcement?: string; // Режим поощрения (FR1 / FR1 → VR3 / ...)
+  prompts?: string; // Подсказки
+  errorCorrection?: string; // Коррекция ошибки
+  steps?: string[]; // Этапы / Шаги
+  program?: string; // Источник программы
+}
+
+export interface Category {
+  id: string;
+  title: string;
+  order: number;
+  icon: string;
+}
+
+export interface DayStat {
+  date: string; // yyyy-mm-dd
+  done: number;
+  total: number;
+}
+```
+
+---
+
+## Шаг 2. Сид-данные программы
+
+Открой `src/lib/data/mock.ts` и **замени его целиком** на код ниже. Здесь 8
+категорий-доменов и все 22 цели программы с полной методикой. Блоки
+`dayStats14` и `heatmap6w` для экрана статистики оставлены как раньше.
+
+> Значения `durationMin` — ориентировочные (в исходной программе длительностей
+> нет); родитель может их поправить. `ageMin/ageMax = 3/4` соответствуют возрасту
+> Мартина. Всё остальное перенесено из программы.
+
+```ts
 import type { Category, DayStat, Game } from "./types";
 
 // Категории — домены навыков ABA-программы (заменяют «время суток»).
@@ -11,8 +127,6 @@ export const categories: Category[] = [
   { id: "speech", title: "Речь и вокализации", order: 7, icon: "mic" },
   { id: "self-regulation", title: "Саморегуляция", order: 8, icon: "timer" },
 ];
-
-type Difficulty = Game["difficulty"];
 
 // Хелпер: заполняет общие поля значениями по умолчанию.
 const t = (p: {
@@ -57,6 +171,8 @@ const t = (p: {
   steps: p.steps,
   program: "Белая Ворона · июнь 2026",
 });
+
+type Difficulty = Game["difficulty"];
 
 export const games: Game[] = [
   // 1 — Указательный жест
@@ -472,3 +588,265 @@ export const heatmap6w: number[] = Array.from({ length: 42 }, (_, i) => {
   const seed = Math.sin(i * 1.7) * 0.5 + 0.5;
   return Math.min(4, Math.floor(seed * 5));
 });
+```
+
+> Примечание: `type Difficulty = Game["difficulty"];` объявлен внутри `mock.ts`
+> только для типизации хелпера. Если TypeScript ругается на порядок объявления —
+> перенеси эту строку выше объявления `t` или импортируй `Difficulty` из
+> `./types`.
+
+---
+
+## Шаг 3. Иконки категорий-доменов
+
+Категории сменились, поэтому обнови **только карту иконок** в
+`src/components/CategoryBlock.tsx`. Визуальный контейнер иконки
+(`grid h-8 w-8 place-items-center rounded-xl bg-gradient-primary ...`) и всё
+остальное в компоненте **оставь без изменений**.
+
+Замени строку импорта иконок и объект `iconMap` на:
+
+```tsx
+import {
+  Blocks,
+  Copy,
+  Ear,
+  Eye,
+  MessageCircle,
+  Mic,
+  Shapes,
+  Sparkles,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
+
+const iconMap: Record<string, LucideIcon> = {
+  messages: MessageCircle,
+  eye: Eye,
+  copy: Copy,
+  blocks: Blocks,
+  shapes: Shapes,
+  ear: Ear,
+  mic: Mic,
+  timer: Timer,
+};
+```
+
+И в теле компонента поменяй фолбэк иконки со старого `?? Sun` на `?? Sparkles`:
+
+```tsx
+const Icon = iconMap[category.icon] ?? Sparkles;
+```
+
+Больше в этом файле ничего не трогай.
+
+---
+
+## Шаг 4. Экран методики (Drawer) на кнопке ▶
+
+Сейчас кнопка ▶ на карточке (`GameCard`) ничего не делает. Дадим ей смысл:
+по нажатию открывается нижняя «шторка» с полной методикой занятия. Используем
+**уже существующий** `src/components/ui/drawer.tsx` (экспортирует `Drawer`,
+`DrawerTrigger`, `DrawerContent`, `DrawerTitle`, `DrawerDescription`,
+`DrawerHeader`, `DrawerFooter`, `DrawerClose`). Внешний вид карточки и кнопки
+**не меняем** — меняется только поведение кнопки.
+
+### 4.1. Новый компонент `src/components/GameDetail.tsx`
+
+Создай файл `src/components/GameDetail.tsx` со следующим содержимым. Он собран
+целиком из существующих токенов дизайна.
+
+```tsx
+import { ListChecks, Sparkles, Target } from "lucide-react";
+import type { Game } from "@/lib/data/types";
+
+function Chip({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return (
+    <div className="rounded-2xl bg-surface-2 px-3 py-2">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-sm font-medium text-foreground">{value}</div>
+    </div>
+  );
+}
+
+export function GameDetail({ game }: { game: Game }) {
+  const hasMeta = game.method || game.reinforcement || game.prompts || game.errorCorrection;
+  return (
+    <div className="mx-auto max-h-[82vh] w-full max-w-md overflow-y-auto px-5 pb-8 pt-1">
+      {game.tags.length > 0 && (
+        <div className="mb-1 flex items-center gap-1.5">
+          <Sparkles className="h-4 w-4 text-[oklch(0.5_0.27_305)]" />
+          <span className="text-xs font-medium text-muted-foreground">{game.tags.join(" · ")}</span>
+        </div>
+      )}
+      <h2 className="text-2xl font-extrabold text-foreground">{game.title}</h2>
+
+      <div className="mt-3 flex items-start gap-2 rounded-3xl bg-gradient-primary p-4 text-white shadow-glow">
+        <Target className="mt-0.5 h-5 w-5 shrink-0" />
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-white/80">Цель</div>
+          <div className="mt-0.5 text-sm font-medium">{game.goal}</div>
+        </div>
+      </div>
+
+      {game.successCriterion && (
+        <div className="mt-3 rounded-3xl bg-surface-2 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Критерий успешности
+          </div>
+          <div className="mt-1 text-sm text-foreground">{game.successCriterion}</div>
+        </div>
+      )}
+
+      {hasMeta && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Chip label="Метод" value={game.method} />
+          <Chip label="Поощрение" value={game.reinforcement} />
+          <Chip label="Подсказки" value={game.prompts} />
+          <Chip label="Коррекция ошибки" value={game.errorCorrection} />
+        </div>
+      )}
+
+      {game.steps && game.steps.length > 0 && (
+        <div className="mt-4">
+          <div className="mb-2 flex items-center gap-1.5 font-semibold text-foreground">
+            <ListChecks className="h-4 w-4" /> Этапы
+          </div>
+          <ol className="space-y-2">
+            {game.steps.map((s, i) => (
+              <li
+                key={i}
+                className="flex gap-3 rounded-2xl bg-surface p-3 shadow-card ring-1 ring-black/[0.04]"
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-primary text-xs font-bold text-white">
+                  {i + 1}
+                </span>
+                <span className="text-sm text-foreground">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {game.instruction && (
+        <div className="mt-4">
+          <div className="mb-2 font-semibold text-foreground">Как проводить</div>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">
+            {game.instruction}
+          </p>
+        </div>
+      )}
+
+      {game.program && (
+        <div className="mt-5 text-center text-xs text-muted-foreground">
+          Программа · {game.program}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 4.2. Подключить Drawer в `src/components/GameCard.tsx`
+
+Оберни карточку в `Drawer`, а существующую кнопку ▶ — в `DrawerTrigger`.
+**Классы кнопки и всей карточки не меняются**, меняется только то, что кнопка
+теперь открывает шторку. Конкретно:
+
+1. Добавь импорты вверху файла:
+
+```tsx
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { GameDetail } from "./GameDetail";
+```
+
+2. Оберни весь `return` карточки в `<Drawer> … </Drawer>` так, чтобы
+   `motion.div` карточки остался внутри, а после него шёл `DrawerContent`:
+
+```tsx
+return (
+  <Drawer>
+    <motion.div
+      /* ...ОСТАВЬ ВСЕ СУЩЕСТВУЮЩИЕ ПРОПСЫ И className БЕЗ ИЗМЕНЕНИЙ... */
+    >
+      {/* ...чекбокс и текстовый блок карточки — без изменений... */}
+
+      {/* Кнопка ▶: оберни существующий <button> в DrawerTrigger asChild.
+          Классы кнопки НЕ меняем, только aria-label делаем осмысленным. */}
+      <DrawerTrigger asChild>
+        <button
+          aria-label="Открыть методику"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-white shadow-soft transition-transform active:scale-95"
+        >
+          <Play className="h-4 w-4 fill-current" />
+        </button>
+      </DrawerTrigger>
+    </motion.div>
+
+    <DrawerContent>
+      <DrawerTitle className="sr-only">{game.title}</DrawerTitle>
+      <GameDetail game={game} />
+    </DrawerContent>
+  </Drawer>
+);
+```
+
+Важно: `DrawerTitle` со `sr-only` обязателен для доступности (Radix/vaul
+требует заголовок). Больше в `GameCard` ничего визуально не меняем — чекбокс,
+заголовок, описание, чипы длительности/возраста/тегов остаются как есть.
+
+---
+
+## Шаг 5. Проверки и приёмка
+
+Выполни:
+
+```bash
+bun install
+bun run lint
+bun run build
+```
+
+Затем `bun run dev` и вручную проверь:
+
+- На экране **«Сегодня»** занятия сгруппированы в 8 доменов
+  (Коммуникация и просьбы, Совместное внимание, Имитация, Игра, Сопоставление и
+  сортировка, Понимание речи, Речь и вокализации, Саморегуляция). Всего 22
+  карточки.
+- Чекбокс отмечает выполнение, прогресс-кольцо и счётчик «X из 22» обновляются;
+  статус сохраняется после перезагрузки (localStorage).
+- Кнопка ▶ на карточке открывает шторку с целью, критерием, чипами
+  (метод/поощрение/подсказки/коррекция), этапами и текстом «Как проводить».
+- Кнопка «Предложить следующее занятие» подсвечивает и прокручивает к карточке.
+- Экраны **«Статистика»** и **«Ещё»** открываются без ошибок (аналитика пока
+  демонстрационная — это ожидаемо).
+
+### Чек-лист «готово»
+
+- [ ] `types.ts` расширен ABA-полями (необязательными).
+- [ ] `mock.ts` содержит 8 категорий-доменов и 22 цели программы с полной
+      методикой.
+- [ ] `CategoryBlock` знает иконки новых доменов; фолбэк — `Sparkles`.
+- [ ] `GameDetail.tsx` создан; кнопка ▶ в `GameCard` открывает шторку.
+- [ ] `bun run build` и `bun run lint` проходят без ошибок.
+- [ ] **Внешний вид и дизайн не изменились**: токены, градиент, тени,
+      скругления, шрифт, раскладка `max-w-md`, визуальные классы существующих
+      компонентов — прежние. Шторка выглядит как родная часть приложения.
+
+## Что НЕ входит в эту задачу
+
+- Реальная аналитика/серии на `/stats` (пока заглушки) — отдельная задача.
+- Перевод хранения на Supabase — делается позже внутри `DataService`, без правок
+  UI.
+- Третий этап PECS (различение) — по программе запрашивается у куратора.
+
+---
+
+*Источник программы: составила и прислала Мария (логопед и куратор), центр
+«Белая Ворона», конец июня 2026; для Мартина, 3 г 4 мес.*

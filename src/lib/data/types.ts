@@ -23,6 +23,15 @@ export interface Game {
   notes: string;
   status: GameStatus;
   history: HistoryEntry[];
+
+  // --- Поля ABA-программы (необязательные: старый UI работает без них) ---
+  successCriterion?: string; // Критерий успешности
+  method?: string; // Метод (NET / DTT / Shaping / ТУЕ / шейпинг / ...)
+  reinforcement?: string; // Режим поощрения (FR1 / FR1 → VR3 / ...)
+  prompts?: string; // Подсказки
+  errorCorrection?: string; // Коррекция ошибки
+  steps?: string[]; // Этапы / Шаги
+  program?: string; // Источник программы
 }
 
 export interface Category {
