@@ -66,12 +66,7 @@ export function CategoryBlock({ category, games, highlightId, onToggle }: Props)
           }}
         >
           {games.map((g) => (
-            <GameCard
-              key={g.id}
-              game={g}
-              highlight={g.id === highlightId}
-              onToggle={onToggle}
-            />
+            <GameCard key={g.id} game={g} highlight={g.id === highlightId} onToggle={onToggle} />
           ))}
         </motion.div>
       )}

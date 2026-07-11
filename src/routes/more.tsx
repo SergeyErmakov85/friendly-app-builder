@@ -1,16 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Bell,
-  Cloud,
-  Download,
-  Globe,
-  Info,
-  Moon,
-  Palette,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { Bell, Cloud, Download, Globe, Info, Moon, Palette, Trash2, Upload } from "lucide-react";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { Switch } from "@/components/ui/switch";
 
@@ -51,15 +41,7 @@ function Section({
   );
 }
 
-function Row({
-  label,
-  hint,
-  right,
-}: {
-  label: string;
-  hint?: string;
-  right: React.ReactNode;
-}) {
+function Row({ label, hint, right }: { label: string; hint?: string; right: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-2/60 px-4 py-3">
       <div className="min-w-0">
@@ -179,14 +161,14 @@ function MorePage() {
 
         <Section icon={<Info className="h-4 w-4" />} title="О приложении">
           <p className="text-sm text-muted-foreground">
-            Трекер развивающих занятий — мягкое сопровождение развития ребёнка.
-            Версия 0.1 (демо).
+            Трекер развивающих занятий — мягкое сопровождение развития ребёнка. Версия 0.1 (демо).
           </p>
         </Section>
 
         <Section icon={<Trash2 className="h-4 w-4" />} title="Сброс">
           <p className="text-xs text-muted-foreground">
-            Полностью очистить все отметки на этом устройстве. Сделай бэкап заранее — отменить нельзя.
+            Полностью очистить все отметки на этом устройстве. Сделай бэкап заранее — отменить
+            нельзя.
           </p>
           <button className="w-full rounded-full border-2 border-destructive/60 px-5 py-2.5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10">
             Стереть все данные

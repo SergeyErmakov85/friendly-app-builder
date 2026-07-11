@@ -19,14 +19,26 @@ export function StatisticsCard({ label, value, hint, icon, accent }: Props) {
     >
       <div className="flex items-start justify-between">
         <div>
-          <div className={cn("text-xs font-medium", accent ? "text-white/80" : "text-muted-foreground")}>
+          <div
+            className={cn(
+              "text-xs font-medium",
+              accent ? "text-white/80" : "text-muted-foreground",
+            )}
+          >
             {label}
           </div>
-          <div className={cn("mt-1 text-2xl font-extrabold", accent ? "text-white" : "text-foreground")}>
+          <div
+            className={cn(
+              "mt-1 text-2xl font-extrabold",
+              accent ? "text-white" : "text-foreground",
+            )}
+          >
             {value}
           </div>
           {hint && (
-            <div className={cn("mt-0.5 text-xs", accent ? "text-white/80" : "text-muted-foreground")}>
+            <div
+              className={cn("mt-0.5 text-xs", accent ? "text-white/80" : "text-muted-foreground")}
+            >
               {hint}
             </div>
           )}

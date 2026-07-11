@@ -18,7 +18,9 @@ export function HeatMap({ values }: Props) {
     <div>
       <div className="grid grid-cols-7 gap-1.5 pb-1 text-[11px] text-muted-foreground">
         {dayLabels.map((d) => (
-          <div key={d} className="text-center">{d}</div>
+          <div key={d} className="text-center">
+            {d}
+          </div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1.5">

@@ -463,7 +463,10 @@ export const dayStats14: DayStat[] = Array.from({ length: 14 }, (_, i) => {
   const d = new Date();
   d.setDate(d.getDate() - (13 - i));
   const total = 18 + (i % 3);
-  const done = Math.max(0, Math.min(total, Math.round(total * (0.35 + Math.sin(i) * 0.3 + i * 0.02))));
+  const done = Math.max(
+    0,
+    Math.min(total, Math.round(total * (0.35 + Math.sin(i) * 0.3 + i * 0.02))),
+  );
   return { date: d.toISOString().slice(0, 10), done, total };
 });
 

@@ -11,7 +11,10 @@ export const Route = createFileRoute("/stats")({
   head: () => ({
     meta: [
       { title: "Статистика — Трекер развивающих занятий" },
-      { name: "description", content: "Серии, активные дни, тепловая карта и прогресс по занятиям." },
+      {
+        name: "description",
+        content: "Серии, активные дни, тепловая карта и прогресс по занятиям.",
+      },
     ],
   }),
 });
@@ -39,9 +42,7 @@ function StatsPage() {
         <GradientBlobs />
         <div className="relative">
           <h1 className="text-3xl font-extrabold">Статистика</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Регулярность, серии и живой прогресс
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Регулярность, серии и живой прогресс</p>
         </div>
       </header>
 
@@ -49,19 +50,33 @@ function StatsPage() {
         <div className="grid grid-cols-2 gap-3">
           <StatisticsCard
             label="Текущая серия"
-            value={<>{streaks.current} <span className="text-base font-medium text-muted-foreground">дн.</span></>}
+            value={
+              <>
+                {streaks.current}{" "}
+                <span className="text-base font-medium text-muted-foreground">дн.</span>
+              </>
+            }
             hint="день зачтён"
             icon={<Flame className="h-4 w-4" />}
             accent
           />
           <StatisticsCard
             label="Лучшая серия"
-            value={<>{streaks.best} <span className="text-base font-medium text-muted-foreground">дн.</span></>}
+            value={
+              <>
+                {streaks.best}{" "}
+                <span className="text-base font-medium text-muted-foreground">дн.</span>
+              </>
+            }
             icon={<Trophy className="h-4 w-4" />}
           />
           <StatisticsCard
             label="Ядро закрыто"
-            value={<>5 <span className="text-base font-medium text-muted-foreground">из 7</span></>}
+            value={
+              <>
+                5 <span className="text-base font-medium text-muted-foreground">из 7</span>
+              </>
+            }
             hint="неделя"
             icon={<Activity className="h-4 w-4" />}
           />

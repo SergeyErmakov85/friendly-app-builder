@@ -1,11 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, Clock, Play, Sparkles } from "lucide-react";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import type { Game } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 import { GameDetail } from "./GameDetail";
@@ -64,15 +59,15 @@ export function GameCard({ game, highlight, onToggle }: Props) {
                 {game.title}
               </h3>
             </div>
-            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
-              {game.description}
-            </p>
+            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{game.description}</p>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
                 {game.durationMin} мин
               </span>
-              <span>{game.ageMin}–{game.ageMax} лет</span>
+              <span>
+                {game.ageMin}–{game.ageMax} лет
+              </span>
               {game.tags.slice(0, 2).map((t) => (
                 <span
                   key={t}

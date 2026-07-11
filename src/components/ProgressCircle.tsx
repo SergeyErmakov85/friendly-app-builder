@@ -8,20 +8,17 @@ interface Props {
   sublabel?: string;
 }
 
-export function ProgressCircle({
-  percent,
-  size = 140,
-  stroke = 12,
-  label,
-  sublabel,
-}: Props) {
+export function ProgressCircle({ percent, size = 140, stroke = 12, label, sublabel }: Props) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(100, percent));
   const offset = c - (c * p) / 100;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <defs>
           <linearGradient id="pcgrad" x1="0" y1="0" x2="1" y2="1">
