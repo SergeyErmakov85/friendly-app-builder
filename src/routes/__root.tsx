@@ -74,21 +74,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Трекер развивающих занятий" },
+      { title: "Сегодня — Трекер развивающих занятий" },
       {
         name: "description",
         content:
-          "Мягкое ежедневное сопровождение развития ребёнка: игры, серии, прогресс и красивая статистика.",
+          "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации.",
       },
       { name: "author", content: "Lovable" },
       { name: "theme-color", content: "#F6F8FE" },
-      { property: "og:title", content: "Трекер развивающих занятий" },
+      { property: "og:title", content: "Сегодня — Трекер развивающих занятий" },
       {
         property: "og:description",
-        content: "Игры и занятия на каждый день — регулярность, серии и живой прогресс.",
+        content: "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Сегодня — Трекер развивающих занятий" },
+      { name: "twitter:description", content: "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
