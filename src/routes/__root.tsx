@@ -79,8 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Сегодня — Трекер развивающих занятий" },
       {
         name: "description",
-        content:
-          "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации.",
+        content: "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации.",
       },
       { name: "author", content: "Lovable" },
       { name: "theme-color", content: "#F6F8FE" },
@@ -92,9 +91,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Сегодня — Трекер развивающих занятий" },
-      { name: "twitter:description", content: "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png" },
+      {
+        name: "twitter:description",
+        content: "Игры и занятия на сегодня: прогресс дня, ядро занятий и рекомендации.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f142910-4714-4017-ac9c-74542d5bd2e3/id-preview-4bf9dd83--98adfbe2-d60f-46b1-a5cc-e65cb5acc2df.lovable.app-1783757210629.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
