@@ -45,6 +45,9 @@ export interface Category {
 
 export interface DayStat {
   date: string; // yyyy-mm-dd
-  done: number;
-  total: number;
+  done: number; // сколько игр отмечено хотя бы раз
+  count: number; // суммарное число отметок за день
+  total: number; // максимум = games.length * MAX_DOTS
 }
+
+export const MAX_DOTS = 10;
