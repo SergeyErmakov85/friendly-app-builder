@@ -16,8 +16,7 @@ const levelColor = (v: number, max: number): string => {
 
 const dayLabels = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
 
-export function HeatMap({ values }: Props) {
-  // Render as 6 rows x 7 cols
+export function HeatMap({ values, max = 22 }: Props) {
   return (
     <div>
       <div className="grid grid-cols-7 gap-1.5 pb-1 text-[11px] text-muted-foreground">
@@ -32,8 +31,8 @@ export function HeatMap({ values }: Props) {
           <div
             key={i}
             className={`aspect-square rounded-lg ${v > 0 ? "" : "bg-surface-2"} transition-transform hover:scale-110`}
-            style={v > 0 ? { backgroundColor: levelColor(v) } : undefined}
-            title={v > 0 ? `выполнено ${v} из ${MAX_GAMES}` : "нет занятий"}
+            style={v > 0 ? { backgroundColor: levelColor(v, max) } : undefined}
+            title={v > 0 ? `отметок: ${v} из ${max}` : "нет занятий"}
           />
         ))}
       </div>
