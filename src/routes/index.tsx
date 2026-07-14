@@ -120,6 +120,7 @@ function TodayPage() {
                 games={list}
                 highlightId={highlightId}
                 onToggle={onToggle}
+                onSetCount={onSetCount}
               />
             </div>
           );
