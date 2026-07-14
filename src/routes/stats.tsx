@@ -23,10 +23,11 @@ function StatsPage() {
   const streaks = useMemo(() => DataService.getStreaks(), []);
   const days = useMemo(() => DataService.getDayStats14(), []);
   const heat = useMemo(() => DataService.getHeatmap6w(), []);
+  const heatMax = useMemo(() => DataService.getHeatmapMax(), []);
   const week = useMemo(() => DataService.getWeeklyActive(), []);
   const byGame = useMemo(() => DataService.getGameCompletionRates(30), []);
 
-  const maxDone = Math.max(1, ...days.map((d) => d.done));
+  const maxDone = Math.max(1, ...days.map((d) => d.count));
 
   return (
     <div>
