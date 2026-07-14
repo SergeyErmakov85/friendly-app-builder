@@ -30,9 +30,10 @@ interface Props {
   games: Game[];
   highlightId?: string;
   onToggle: (id: string) => void;
+  onSetCount: (id: string, count: number) => void;
 }
 
-export function CategoryBlock({ category, games, highlightId, onToggle }: Props) {
+export function CategoryBlock({ category, games, highlightId, onToggle, onSetCount }: Props) {
   const Icon = iconMap[category.icon] ?? Sparkles;
   const done = games.filter((g) => g.status === "done").length;
   const totalMin = games.reduce((a, g) => a + g.durationMin, 0);
@@ -66,7 +67,13 @@ export function CategoryBlock({ category, games, highlightId, onToggle }: Props)
           }}
         >
           {games.map((g) => (
-            <GameCard key={g.id} game={g} highlight={g.id === highlightId} onToggle={onToggle} />
+            <GameCard
+              key={g.id}
+              game={g}
+              highlight={g.id === highlightId}
+              onToggle={onToggle}
+              onSetCount={onSetCount}
+            />
           ))}
         </motion.div>
       )}

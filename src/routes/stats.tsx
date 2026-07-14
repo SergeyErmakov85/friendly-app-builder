@@ -23,10 +23,11 @@ function StatsPage() {
   const streaks = useMemo(() => DataService.getStreaks(), []);
   const days = useMemo(() => DataService.getDayStats14(), []);
   const heat = useMemo(() => DataService.getHeatmap6w(), []);
+  const heatMax = useMemo(() => DataService.getHeatmapMax(), []);
   const week = useMemo(() => DataService.getWeeklyActive(), []);
   const byGame = useMemo(() => DataService.getGameCompletionRates(30), []);
 
-  const maxDone = Math.max(1, ...days.map((d) => d.done));
+  const maxDone = Math.max(1, ...days.map((d) => d.count));
 
   return (
     <div>
@@ -84,7 +85,7 @@ function StatsPage() {
           <h3 className="mb-3 font-semibold">Последние 14 дней</h3>
           <div className="flex h-32 items-end gap-1.5">
             {days.map((d) => {
-              const h = (d.done / maxDone) * 100;
+              const h = (d.count / maxDone) * 100;
               return (
                 <div key={d.date} className="flex h-full flex-1 flex-col items-center gap-1">
                   <div className="flex w-full flex-1 items-end">
@@ -104,7 +105,7 @@ function StatsPage() {
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
           <h3 className="mb-3 font-semibold">Тепловая карта ядра ★ (6 недель)</h3>
-          <HeatMap values={heat} />
+          <HeatMap values={heat} max={heatMax} />
         </section>
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
