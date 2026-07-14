@@ -105,7 +105,7 @@ function StatsPage() {
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
           <h3 className="mb-3 font-semibold">Тепловая карта ядра ★ (6 недель)</h3>
-          <HeatMap values={heat} />
+          <HeatMap values={heat} max={heatMax} />
         </section>
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
