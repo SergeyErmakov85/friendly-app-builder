@@ -22,6 +22,8 @@ export interface Game {
   instruction: string;
   notes: string;
   status: GameStatus;
+  /** Сколько раз задание было отмечено сегодня (0..MAX_DOTS). */
+  count: number;
   history: HistoryEntry[];
 
   // --- Поля ABA-программы (необязательные: старый UI работает без них) ---
