@@ -85,7 +85,7 @@ function StatsPage() {
           <h3 className="mb-3 font-semibold">Последние 14 дней</h3>
           <div className="flex h-32 items-end gap-1.5">
             {days.map((d) => {
-              const h = (d.done / maxDone) * 100;
+              const h = (d.count / maxDone) * 100;
               return (
                 <div key={d.date} className="flex h-full flex-1 flex-col items-center gap-1">
                   <div className="flex w-full flex-1 items-end">
