@@ -38,6 +38,10 @@ function TodayPage() {
     setGames(DataService.toggleGame(id));
   };
 
+  const onSetCount = (id: string, count: number) => {
+    setGames(DataService.setGameCount(id, count));
+  };
+
   const done = games.filter((g) => g.status === "done").length;
   const total = games.length;
   const percent = total ? Math.round((done / total) * 100) : 0;
