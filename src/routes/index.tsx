@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Activity, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
 import { CategoryBlock } from "@/components/CategoryBlock";
