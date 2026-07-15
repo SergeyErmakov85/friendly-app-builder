@@ -13,6 +13,7 @@ import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as KinesiotherapyRouteImport } from './routes/kinesiotherapy'
+import { Route as DevelopmentGamesRouteImport } from './routes/development-games'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StatsRoute = StatsRouteImport.update({
@@ -35,6 +36,11 @@ const KinesiotherapyRoute = KinesiotherapyRouteImport.update({
   path: '/kinesiotherapy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevelopmentGamesRoute = DevelopmentGamesRouteImport.update({
+  id: '/development-games',
+  path: '/development-games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/development-games': typeof DevelopmentGamesRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/development-games': typeof DevelopmentGamesRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/development-games': typeof DevelopmentGamesRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -65,14 +74,34 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
+  fullPaths:
+    | '/'
+    | '/development-games'
+    | '/kinesiotherapy'
+    | '/more'
+    | '/sitemap.xml'
+    | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
-  id: '__root__' | '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
+  to:
+    | '/'
+    | '/development-games'
+    | '/kinesiotherapy'
+    | '/more'
+    | '/sitemap.xml'
+    | '/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/development-games'
+    | '/kinesiotherapy'
+    | '/more'
+    | '/sitemap.xml'
+    | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevelopmentGamesRoute: typeof DevelopmentGamesRoute
   KinesiotherapyRoute: typeof KinesiotherapyRoute
   MoreRoute: typeof MoreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -109,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KinesiotherapyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/development-games': {
+      id: '/development-games'
+      path: '/development-games'
+      fullPath: '/development-games'
+      preLoaderRoute: typeof DevelopmentGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevelopmentGamesRoute: DevelopmentGamesRoute,
   KinesiotherapyRoute: KinesiotherapyRoute,
   MoreRoute: MoreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -129,13 +166,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
