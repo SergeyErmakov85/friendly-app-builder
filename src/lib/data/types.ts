@@ -22,6 +22,8 @@ export interface Game {
   instruction: string;
   notes: string;
   status: GameStatus;
+  /** Сколько раз задание было отмечено сегодня (0..MAX_DOTS). */
+  count?: number;
   history: HistoryEntry[];
 
   // --- Поля ABA-программы (необязательные: старый UI работает без них) ---
@@ -43,6 +45,9 @@ export interface Category {
 
 export interface DayStat {
   date: string; // yyyy-mm-dd
-  done: number;
-  total: number;
+  done: number; // сколько игр отмечено хотя бы раз
+  count: number; // суммарное число отметок за день
+  total: number; // максимум = games.length * MAX_DOTS
 }
+
+export const MAX_DOTS = 10;

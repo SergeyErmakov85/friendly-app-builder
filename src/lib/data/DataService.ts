@@ -1,4 +1,5 @@
 import type { Category, DayStat, Game } from "./types";
+import { MAX_DOTS } from "./types";
 import { categories as mockCategories, games as mockGames } from "./mock";
 
 const dateKey = (d: Date): string => {
@@ -19,40 +20,62 @@ const shiftKey = (key: string, days: number): string => {
   return dateKey(d);
 };
 
+type DayCounts = Record<string, number>; // gameId -> count 0..MAX_DOTS
+
 /**
- * DataService is the single access point for all app data.
- * Currently backed by in-memory mock data + localStorage for completion history.
- * Swapping to Supabase later requires no UI changes.
+ * DataService — единая точка доступа к данным.
  *
- * История хранится по дням: { "yyyy-mm-dd": [id выполненных игр] }.
- * Статусы «сегодня» выводятся из записи текущего дня, поэтому каждый новый
- * день чеклист начинается заново, а вся статистика считается из истории.
+ * История хранится по дням: { "yyyy-mm-dd": { gameId: count } }, где count —
+ * сколько раз в этот день задание было отмечено (0..10). «Статус» игры на
+ * сегодня = count > 0. Все графики строятся из этой истории.
  */
 class DataServiceImpl {
   private games: Game[];
-  private history: Record<string, string[]> = {};
-  private readonly HISTORY_KEY = "tracker.history.v1";
-  private readonly LEGACY_STATUS_KEY = "tracker.gameStatus.v1";
+  private history: Record<string, DayCounts> = {};
+  private readonly HISTORY_KEY = "tracker.counts.v2";
+  private readonly LEGACY_KEYS = ["tracker.history.v1", "tracker.gameStatus.v1"];
 
   constructor() {
-    this.games = mockGames.map((g) => ({ ...g }));
+    this.games = mockGames.map((g) => ({ ...g, count: 0 }));
     this.hydrate();
   }
 
   private hydrate() {
     if (typeof window === "undefined") return;
     try {
-      // Старый формат без дат не переносим — статистика начинается с нуля.
-      window.localStorage.removeItem(this.LEGACY_STATUS_KEY);
+      // Мигрируем старый формат { date: string[] } → counts=1 за каждый id.
+      for (const legacy of this.LEGACY_KEYS) {
+        const raw = window.localStorage.getItem(legacy);
+        if (!raw) continue;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            for (const [date, ids] of Object.entries(parsed)) {
+              if (!Array.isArray(ids)) continue;
+              const bucket: DayCounts = {};
+              for (const id of ids as string[]) bucket[id] = 1;
+              this.history[date] = bucket;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+        window.localStorage.removeItem(legacy);
+      }
+
       const raw = window.localStorage.getItem(this.HISTORY_KEY);
-      if (raw) this.history = JSON.parse(raw) as Record<string, string[]>;
+      if (raw) {
+        const parsed = JSON.parse(raw) as Record<string, DayCounts>;
+        this.history = { ...this.history, ...parsed };
+      }
     } catch {
       this.history = {};
     }
-    const today = new Set(this.history[dateKey(new Date())] ?? []);
+    const today = this.history[dateKey(new Date())] ?? {};
     this.games = this.games.map((g) => ({
       ...g,
-      status: today.has(g.id) ? "done" : "todo",
+      count: today[g.id] ?? 0,
+      status: (today[g.id] ?? 0) > 0 ? "done" : "todo",
     }));
   }
 
@@ -61,8 +84,32 @@ class DataServiceImpl {
     window.localStorage.setItem(this.HISTORY_KEY, JSON.stringify(this.history));
   }
 
+  private countsOn(key: string): number {
+    const b = this.history[key];
+    if (!b) return 0;
+    let s = 0;
+    for (const v of Object.values(b)) s += v;
+    return s;
+  }
+
   private doneOn(key: string): number {
-    return this.history[key]?.length ?? 0;
+    const b = this.history[key];
+    if (!b) return 0;
+    let s = 0;
+    for (const v of Object.values(b)) if (v > 0) s++;
+    return s;
+  }
+
+  private writeToday() {
+    const key = dateKey(new Date());
+    const bucket: DayCounts = {};
+    for (const g of this.games) {
+      const c = g.count ?? 0;
+      if (c > 0) bucket[g.id] = c;
+    }
+    if (Object.keys(bucket).length > 0) this.history[key] = bucket;
+    else delete this.history[key];
+    this.persist();
   }
 
   getCategories(): Category[] {
@@ -79,42 +126,63 @@ class DataServiceImpl {
       .sort((a, b) => a.priority - b.priority);
   }
 
+  /** Основной чекбокс: 0 ⟷ 1 (одна отметка). */
   toggleGame(id: string): Game[] {
+    this.games = this.games.map((g) => {
+      if (g.id !== id) return g;
+      const next = (g.count ?? 0) > 0 ? 0 : 1;
+      return { ...g, count: next, status: next > 0 ? "done" : "todo" };
+    });
+    this.writeToday();
+    return this.games;
+  }
+
+  /** Установить конкретное количество отметок (0..MAX_DOTS). */
+  setGameCount(id: string, count: number): Game[] {
+    const c = Math.max(0, Math.min(MAX_DOTS, Math.round(count)));
     this.games = this.games.map((g) =>
-      g.id === id ? { ...g, status: g.status === "done" ? "todo" : "done" } : g,
+      g.id === id ? { ...g, count: c, status: c > 0 ? "done" : "todo" } : g,
     );
-    const key = dateKey(new Date());
-    const done = this.games.filter((g) => g.status === "done").map((g) => g.id);
-    if (done.length > 0) this.history[key] = done;
-    else delete this.history[key];
-    this.persist();
+    this.writeToday();
     return this.games;
   }
 
   getDailyProgress() {
     const total = this.games.length;
-    const done = this.games.filter((g) => g.status === "done").length;
-    return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
+    const done = this.games.filter((g) => (g.count ?? 0) > 0).length;
+    const totalCount = this.games.reduce((a, g) => a + (g.count ?? 0), 0);
+    return {
+      done,
+      total,
+      percent: total ? Math.round((done / total) * 100) : 0,
+      totalCount,
+      maxCount: total * MAX_DOTS,
+    };
   }
 
   getNextSuggested(): Game | undefined {
     return [...this.games]
-      .filter((g) => g.status === "todo")
+      .filter((g) => (g.count ?? 0) === 0)
       .sort((a, b) => a.priority - b.priority)[0];
   }
 
   getDayStats14(): DayStat[] {
-    const total = this.games.length;
+    const totalMax = this.games.length * MAX_DOTS;
     const todayKey = dateKey(new Date());
     return Array.from({ length: 14 }, (_, i) => {
       const key = shiftKey(todayKey, i - 13);
-      return { date: key, done: this.doneOn(key), total };
+      return {
+        date: key,
+        done: this.doneOn(key),
+        count: this.countsOn(key),
+        total: totalMax,
+      };
     });
   }
 
   /**
    * 6 недель × 7 дней (пн..вс), последняя строка — текущая неделя.
-   * Значение ячейки — сколько игр выполнено в этот день (0..22).
+   * Значение ячейки — суммарное число отметок за день (0..games.length*10).
    */
   getHeatmap6w(): number[] {
     const now = new Date();
@@ -124,18 +192,22 @@ class DataServiceImpl {
     const mondayKey = dateKey(monday);
     return Array.from({ length: 42 }, (_, i) => {
       const key = shiftKey(mondayKey, i);
-      return key > todayKey ? 0 : this.doneOn(key);
+      return key > todayKey ? 0 : this.countsOn(key);
     });
   }
 
+  getHeatmapMax(): number {
+    return this.games.length * MAX_DOTS;
+  }
+
   getStreaks() {
-    const activeKeys = Object.keys(this.history).filter((k) => this.history[k].length > 0);
+    const activeKeys = Object.keys(this.history).filter((k) => this.doneOn(k) > 0);
     const set = new Set(activeKeys);
-    const totalGames = activeKeys.reduce((sum, k) => sum + this.history[k].length, 0);
+    const totalGames = activeKeys.reduce((sum, k) => sum + this.countsOn(k), 0);
 
     let best = 0;
     for (const k of set) {
-      if (set.has(shiftKey(k, -1))) continue; // не начало серии
+      if (set.has(shiftKey(k, -1))) continue;
       let len = 1;
       let cursor = shiftKey(k, 1);
       while (set.has(cursor)) {
@@ -145,7 +217,6 @@ class DataServiceImpl {
       best = Math.max(best, len);
     }
 
-    // Текущая серия: от сегодня (или от вчера, если сегодня пока пусто).
     let current = 0;
     let cursor = dateKey(new Date());
     if (!set.has(cursor)) cursor = shiftKey(cursor, -1);
@@ -157,7 +228,6 @@ class DataServiceImpl {
     return { current, best, activeDays: set.size, totalGames };
   }
 
-  /** Активные дни (есть хотя бы одна отметка) за последние 7 дней. */
   getWeeklyActive() {
     const todayKey = dateKey(new Date());
     let active = 0;
@@ -168,8 +238,8 @@ class DataServiceImpl {
   }
 
   /**
-   * Процент по каждой игре: доля активных дней за период, когда игра
-   * была выполнена. Пока активных дней нет — у всех 0%.
+   * Средний уровень отметок по игре за период: сумма count по активным дням
+   * делённая на (активные дни × MAX_DOTS). Пока активных дней нет — 0 %.
    */
   getGameCompletionRates(days = 30) {
     const todayKey = dateKey(new Date());
@@ -178,14 +248,16 @@ class DataServiceImpl {
       const key = shiftKey(todayKey, -i);
       if (this.doneOn(key) > 0) activeKeys.push(key);
     }
+    const denom = activeKeys.length * MAX_DOTS;
     return [...this.games]
       .sort((a, b) => a.priority - b.priority)
       .map((g) => {
-        const doneDays = activeKeys.filter((k) => this.history[k].includes(g.id)).length;
+        const sum = activeKeys.reduce((a, k) => a + (this.history[k]?.[g.id] ?? 0), 0);
         return {
           id: g.id,
           title: g.title,
-          percent: activeKeys.length ? Math.round((doneDays / activeKeys.length) * 100) : 0,
+          percent: denom ? Math.round((sum / denom) * 100) : 0,
+          total: sum,
         };
       });
   }
