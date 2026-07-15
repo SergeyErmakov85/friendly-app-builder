@@ -1,6 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bell, Cloud, Download, Globe, Info, Moon, Palette, Trash2, Upload } from "lucide-react";
+import {
+  Activity,
+  Bell,
+  ChevronRight,
+  Cloud,
+  Download,
+  Globe,
+  Info,
+  Moon,
+  Palette,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { Switch } from "@/components/ui/switch";
 
@@ -71,6 +83,25 @@ function MorePage() {
       </header>
 
       <main className="space-y-5 px-4 pt-6">
+        <Section
+          icon={<Activity className="h-4 w-4" />}
+          title="Материалы"
+          description="Справочные программы и методики."
+        >
+          <Link
+            to="/kinesiotherapy"
+            className="flex items-center justify-between gap-4 rounded-2xl bg-surface-2/60 px-4 py-3"
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-medium">Кинезиотерапия</div>
+              <div className="text-xs text-muted-foreground">
+                Игровая программа физического развития · 3 года
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        </Section>
+
         <Section
           icon={<Bell className="h-4 w-4" />}
           title="Напоминания"

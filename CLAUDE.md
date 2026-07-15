@@ -91,9 +91,9 @@ src/
   `text-3xl font-extrabold` заголовком и подписью `text-sm text-muted-foreground`.
 - **Первичная кнопка** = `rounded-full bg-gradient-primary text-white shadow-glow`.
 - **Вторичная кнопка** = `rounded-full border-2 border-[oklch(0.62_0.22_264)]
-  text-[oklch(0.45_0.25_285)]`.
+text-[oklch(0.45_0.25_285)]`.
 - **Иконка-«плитка»** = `grid place-items-center rounded-xl bg-gradient-primary
-  text-white shadow-soft`.
+text-white shadow-soft`.
 - **Нижняя навигация** — стеклянная плашка `bg-white/80 backdrop-blur-xl`,
   активная вкладка подсвечивается `bg-gradient-primary`.
 - Списки появляются со `stagger`-анимацией через framer-motion; чекбокс

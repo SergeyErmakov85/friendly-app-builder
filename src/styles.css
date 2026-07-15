@@ -57,9 +57,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.08 275);
 
-  --grad-from: oklch(0.62 0.22 264);   /* #2E63FF-ish */
-  --grad-via:  oklch(0.45 0.25 285);   /* #4B33D8 */
-  --grad-to:   oklch(0.5 0.27 305);    /* #7A28E0 */
+  --grad-from: oklch(0.62 0.22 264); /* #2E63FF-ish */
+  --grad-via: oklch(0.45 0.25 285); /* #4B33D8 */
+  --grad-to: oklch(0.5 0.27 305); /* #7A28E0 */
 
   --primary: oklch(0.45 0.25 285);
   --primary-foreground: oklch(1 0 0);
@@ -77,7 +77,12 @@
   --success: oklch(0.7 0.17 155);
   --text-muted: oklch(0.55 0.04 275);
 
-  --gradient-primary: linear-gradient(135deg, var(--grad-from), var(--grad-via) 55%, var(--grad-to));
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--grad-from),
+    var(--grad-via) 55%,
+    var(--grad-to)
+  );
   --shadow-soft: 0 8px 30px -12px color-mix(in oklab, var(--grad-via) 30%, transparent);
   --shadow-glow: 0 12px 40px -10px color-mix(in oklab, var(--grad-via) 50%, transparent);
   --shadow-card: 0 4px 20px -8px oklch(0.5 0.1 275 / 0.15);
@@ -87,7 +92,8 @@
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -104,17 +110,37 @@
   background-clip: text;
   color: transparent;
 }
-@utility shadow-soft { box-shadow: var(--shadow-soft); }
-@utility shadow-glow { box-shadow: var(--shadow-glow); }
-@utility shadow-card { box-shadow: var(--shadow-card); }
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
 
 @keyframes float-slow {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(20px, -30px) scale(1.05); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -30px) scale(1.05);
+  }
 }
 @keyframes float-slower {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-25px, 20px) scale(1.08); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-25px, 20px) scale(1.08);
+  }
 }
-@utility animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
-@utility animate-float-slower { animation: float-slower 16s ease-in-out infinite; }
+@utility animate-float-slow {
+  animation: float-slow 12s ease-in-out infinite;
+}
+@utility animate-float-slower {
+  animation: float-slower 16s ease-in-out infinite;
+}

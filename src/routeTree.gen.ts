@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as MoreRouteImport } from './routes/more'
+import { Route as KinesiotherapyRouteImport } from './routes/kinesiotherapy'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StatsRoute = StatsRouteImport.update({
@@ -29,6 +30,11 @@ const MoreRoute = MoreRouteImport.update({
   path: '/more',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KinesiotherapyRoute = KinesiotherapyRouteImport.update({
+  id: '/kinesiotherapy',
+  path: '/kinesiotherapy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/more' | '/sitemap.xml' | '/stats'
+  fullPaths: '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/more' | '/sitemap.xml' | '/stats'
-  id: '__root__' | '/' | '/more' | '/sitemap.xml' | '/stats'
+  to: '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
+  id: '__root__' | '/' | '/kinesiotherapy' | '/more' | '/sitemap.xml' | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KinesiotherapyRoute: typeof KinesiotherapyRoute
   MoreRoute: typeof MoreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StatsRoute: typeof StatsRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MoreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kinesiotherapy': {
+      id: '/kinesiotherapy'
+      path: '/kinesiotherapy'
+      fullPath: '/kinesiotherapy'
+      preLoaderRoute: typeof KinesiotherapyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KinesiotherapyRoute: KinesiotherapyRoute,
   MoreRoute: MoreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StatsRoute: StatsRoute,
