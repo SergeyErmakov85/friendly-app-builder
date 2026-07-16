@@ -31,6 +31,15 @@ export function GameDetail({ game }: { game: Game }) {
         </div>
       </div>
 
+      {game.inventory && (
+        <div className="mt-3 rounded-3xl bg-surface-2 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Инвентарь
+          </div>
+          <div className="mt-1 text-sm text-foreground">{game.inventory}</div>
+        </div>
+      )}
+
       {game.successCriterion && (
         <div className="mt-3 rounded-3xl bg-surface-2 p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

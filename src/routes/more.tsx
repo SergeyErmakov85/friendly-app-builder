@@ -100,6 +100,18 @@ function MorePage() {
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Link>
+          <Link
+            to="/development-games"
+            className="flex items-center justify-between gap-4 rounded-2xl bg-surface-2/60 px-4 py-3"
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-medium">Запуск речи</div>
+              <div className="text-xs text-muted-foreground">
+                Развивающие игры для запуска речи · 3 года
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
         </Section>
 
         <Section

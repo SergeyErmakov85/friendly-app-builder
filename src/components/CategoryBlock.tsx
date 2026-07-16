@@ -4,11 +4,14 @@ import {
   Copy,
   Ear,
   Eye,
+  Hand,
   MessageCircle,
   Mic,
+  Music,
   Shapes,
   Sparkles,
   Timer,
+  Wind,
   type LucideIcon,
 } from "lucide-react";
 import type { Category, Game } from "@/lib/data/types";
@@ -23,6 +26,9 @@ const iconMap: Record<string, LucideIcon> = {
   ear: Ear,
   mic: Mic,
   timer: Timer,
+  hand: Hand,
+  wind: Wind,
+  music: Music,
 };
 
 interface Props {

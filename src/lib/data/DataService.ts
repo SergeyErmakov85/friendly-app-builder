@@ -1,6 +1,7 @@
 import type { Category, DayStat, Game } from "./types";
 import { MAX_DOTS } from "./types";
 import { categories as mockCategories, games as mockGames } from "./mock";
+import { speechCategories, speechGames } from "./speechGames";
 
 const dateKey = (d: Date): string => {
   const y = d.getFullYear();
@@ -29,14 +30,25 @@ type DayCounts = Record<string, number>; // gameId -> count 0..MAX_DOTS
  * сколько раз в этот день задание было отмечено (0..10). «Статус» игры на
  * сегодня = count > 0. Все графики строятся из этой истории.
  */
+interface DataSet {
+  games: Game[];
+  categories: Category[];
+  historyKey: string;
+  legacyKeys?: string[];
+}
+
 class DataServiceImpl {
   private games: Game[];
+  private categories: Category[];
   private history: Record<string, DayCounts> = {};
-  private readonly HISTORY_KEY = "tracker.counts.v2";
-  private readonly LEGACY_KEYS = ["tracker.history.v1", "tracker.gameStatus.v1"];
+  private readonly HISTORY_KEY: string;
+  private readonly LEGACY_KEYS: string[];
 
-  constructor() {
-    this.games = mockGames.map((g) => ({ ...g, count: 0 }));
+  constructor(data: DataSet) {
+    this.games = data.games.map((g) => ({ ...g, count: 0 }));
+    this.categories = data.categories;
+    this.HISTORY_KEY = data.historyKey;
+    this.LEGACY_KEYS = data.legacyKeys ?? [];
     this.hydrate();
   }
 
@@ -113,7 +125,7 @@ class DataServiceImpl {
   }
 
   getCategories(): Category[] {
-    return [...mockCategories].sort((a, b) => a.order - b.order);
+    return [...this.categories].sort((a, b) => a.order - b.order);
   }
 
   getGames(): Game[] {
@@ -263,4 +275,16 @@ class DataServiceImpl {
   }
 }
 
-export const DataService = new DataServiceImpl();
+export const DataService = new DataServiceImpl({
+  games: mockGames,
+  categories: mockCategories,
+  historyKey: "tracker.counts.v2",
+  legacyKeys: ["tracker.history.v1", "tracker.gameStatus.v1"],
+});
+
+/** Речевые игры (/development-games): те же механики, отдельная история отметок. */
+export const SpeechGamesService = new DataServiceImpl({
+  games: speechGames,
+  categories: speechCategories,
+  historyKey: "tracker.speech.counts.v1",
+});

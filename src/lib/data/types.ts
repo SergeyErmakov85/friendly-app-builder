@@ -34,6 +34,7 @@ export interface Game {
   errorCorrection?: string; // Коррекция ошибки
   steps?: string[]; // Этапы / Шаги
   program?: string; // Источник программы
+  inventory?: string; // Инвентарь (подручные средства)
 }
 
 export interface Category {
