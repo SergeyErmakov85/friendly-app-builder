@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, MessageCircle, Sparkles } from "lucide-react";
+import { Activity, Gamepad2, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
@@ -73,18 +73,18 @@ function TodayPage() {
             </div>
             <div className="flex items-center gap-2">
               <Link
-                to="/development-games"
-                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
-              >
-                <MessageCircle className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
-                Речь
-              </Link>
-              <Link
                 to="/kinesiotherapy"
                 className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
                 <Activity className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
                 Кинезио
+              </Link>
+              <Link
+                to="/development-games"
+                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+              >
+                <Gamepad2 className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                Игры
               </Link>
             </div>
           </div>
