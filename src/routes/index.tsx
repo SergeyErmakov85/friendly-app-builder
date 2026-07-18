@@ -76,7 +76,7 @@ function TodayPage() {
                 to="/kinesiotherapy"
                 className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
-                <Activity className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                <Dumbbell className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
                 Кинезио
               </Link>
               <Link
