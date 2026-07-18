@@ -17,12 +17,17 @@ interface Props {
 export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
   const count = game.count ?? 0;
   const done = count > 0;
+  const [ready, setReady] = useState(done);
 
   const handleDot = (i: number) => {
-    // Клик по индексу i (1..MAX_DOTS): если такой же уровень — снимаем один,
-    // иначе выставляем count = i. Даёт быстрый ввод любого числа отметок.
+    if (!ready) return;
     const target = count === i ? i - 1 : i;
     onSetCount(game.id, target);
+  };
+
+  const handleToggle = () => {
+    if (!ready) return;
+    onToggle(game.id);
   };
 
   return (
