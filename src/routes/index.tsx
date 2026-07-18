@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, Gamepad2, Sparkles } from "lucide-react";
+import { Dumbbell, Gamepad2, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
