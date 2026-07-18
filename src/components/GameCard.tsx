@@ -46,13 +46,15 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
       >
         <div className="flex items-start gap-3">
           <button
-            onClick={() => onToggle(game.id)}
+            onClick={handleToggle}
+            disabled={!ready}
             aria-label={done ? "Сбросить отметки" : "Отметить выполненным"}
             className={cn(
               "mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 transition-all",
               done
                 ? "bg-gradient-primary border-transparent text-white shadow-glow"
                 : "border-border bg-white text-transparent hover:border-[oklch(0.62_0.22_264)]",
+              !ready && "opacity-40 cursor-not-allowed hover:border-border",
             )}
           >
             <motion.div
