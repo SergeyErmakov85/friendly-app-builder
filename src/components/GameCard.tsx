@@ -108,6 +108,24 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
           </DrawerTrigger>
         </div>
 
+        {/* Кнопка «Ребёнок готов» — активирует возможность отмечать выполнение */}
+        <div className="mt-3 flex justify-end pl-14">
+          <button
+            type="button"
+            onClick={() => setReady((v) => !v)}
+            aria-pressed={ready}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95",
+              ready
+                ? "bg-[oklch(0.88_0.13_150)] text-[oklch(0.32_0.09_150)] ring-1 ring-[oklch(0.78_0.15_150)]"
+                : "bg-[oklch(0.94_0.09_150)] text-[oklch(0.38_0.11_150)] ring-1 ring-[oklch(0.86_0.11_150)] shadow-[0_2px_8px_-2px_oklch(0.78_0.15_150/0.5)] hover:bg-[oklch(0.91_0.11_150)]",
+            )}
+          >
+            {ready && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            {ready ? "Ребёнок готов" : "Ребёнок готов"}
+          </button>
+        </div>
+
         {/* Ряд из 10 кружочков-счётчика */}
         <div
           className="mt-3 flex items-center justify-between gap-1.5 pl-14 pr-1"
