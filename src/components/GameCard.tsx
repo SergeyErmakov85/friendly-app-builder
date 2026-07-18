@@ -141,12 +141,14 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
                 type="button"
                 aria-label={`Отметить ${i}`}
                 aria-pressed={filled}
+                disabled={!ready}
                 onClick={() => handleDot(i)}
                 className={cn(
                   "grid h-6 w-6 place-items-center rounded-full transition-all active:scale-90",
                   filled
                     ? "bg-[oklch(0.78_0.13_195)] shadow-[0_2px_8px_-2px_oklch(0.72_0.15_195/0.6)] ring-1 ring-[oklch(0.72_0.15_195)]"
                     : "bg-surface-2 ring-1 ring-black/[0.04] hover:bg-[oklch(0.94_0.04_195)]",
+                  !ready && "opacity-40 cursor-not-allowed",
                 )}
               >
                 <span className="sr-only">{i}</span>
