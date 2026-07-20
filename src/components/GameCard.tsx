@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Check, Clock, Play, Sparkles } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import type { Game } from "@/lib/data/types";
@@ -16,12 +17,17 @@ interface Props {
 export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
   const count = game.count ?? 0;
   const done = count > 0;
+  const [ready, setReady] = useState(done);
 
   const handleDot = (i: number) => {
-    // Клик по индексу i (1..MAX_DOTS): если такой же уровень — снимаем один,
-    // иначе выставляем count = i. Даёт быстрый ввод любого числа отметок.
+    if (!ready) return;
     const target = count === i ? i - 1 : i;
     onSetCount(game.id, target);
+  };
+
+  const handleToggle = () => {
+    if (!ready) return;
+    onToggle(game.id);
   };
 
   return (
@@ -40,13 +46,15 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
       >
         <div className="flex items-start gap-3">
           <button
-            onClick={() => onToggle(game.id)}
+            onClick={handleToggle}
+            disabled={!ready}
             aria-label={done ? "Сбросить отметки" : "Отметить выполненным"}
             className={cn(
               "mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 transition-all",
               done
                 ? "bg-gradient-primary border-transparent text-white shadow-glow"
                 : "border-border bg-white text-transparent hover:border-[oklch(0.62_0.22_264)]",
+              !ready && "opacity-40 cursor-not-allowed hover:border-border",
             )}
           >
             <motion.div
@@ -100,6 +108,24 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
           </DrawerTrigger>
         </div>
 
+        {/* Кнопка «Ребёнок готов» — активирует возможность отмечать выполнение */}
+        <div className="mt-3 flex justify-end pl-14">
+          <button
+            type="button"
+            onClick={() => setReady((v) => !v)}
+            aria-pressed={ready}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95",
+              ready
+                ? "bg-[oklch(0.88_0.13_150)] text-[oklch(0.32_0.09_150)] ring-1 ring-[oklch(0.78_0.15_150)]"
+                : "bg-[oklch(0.94_0.09_150)] text-[oklch(0.38_0.11_150)] ring-1 ring-[oklch(0.86_0.11_150)] shadow-[0_2px_8px_-2px_oklch(0.78_0.15_150/0.5)] hover:bg-[oklch(0.91_0.11_150)]",
+            )}
+          >
+            {ready && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            {ready ? "Ребёнок готов" : "Ребёнок готов"}
+          </button>
+        </div>
+
         {/* Ряд из 10 кружочков-счётчика */}
         <div
           className="mt-3 flex items-center justify-between gap-1.5 pl-14 pr-1"
@@ -115,12 +141,14 @@ export function GameCard({ game, highlight, onToggle, onSetCount }: Props) {
                 type="button"
                 aria-label={`Отметить ${i}`}
                 aria-pressed={filled}
+                disabled={!ready}
                 onClick={() => handleDot(i)}
                 className={cn(
                   "grid h-6 w-6 place-items-center rounded-full transition-all active:scale-90",
                   filled
                     ? "bg-[oklch(0.78_0.13_195)] shadow-[0_2px_8px_-2px_oklch(0.72_0.15_195/0.6)] ring-1 ring-[oklch(0.72_0.15_195)]"
                     : "bg-surface-2 ring-1 ring-black/[0.04] hover:bg-[oklch(0.94_0.04_195)]",
+                  !ready && "opacity-40 cursor-not-allowed",
                 )}
               >
                 <span className="sr-only">{i}</span>
