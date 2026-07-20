@@ -579,10 +579,7 @@ export const dayStats14: DayStat[] = Array.from({ length: 14 }, (_, i) => {
   const d = new Date();
   d.setDate(d.getDate() - (13 - i));
   const total = 18 + (i % 3);
-  const done = Math.max(
-    0,
-    Math.min(total, Math.round(total * (0.35 + Math.sin(i) * 0.3 + i * 0.02))),
-  );
+  const done = Math.max(0, Math.min(total, Math.round(total * (0.35 + Math.sin(i) * 0.3 + i * 0.02))));
   return { date: d.toISOString().slice(0, 10), done, total };
 });
 
@@ -760,7 +757,12 @@ export function GameDetail({ game }: { game: Game }) {
 1. Добавь импорты вверху файла:
 
 ```tsx
-import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { GameDetail } from "./GameDetail";
 ```
 
@@ -771,7 +773,7 @@ import { GameDetail } from "./GameDetail";
 return (
   <Drawer>
     <motion.div
-    /* ...ОСТАВЬ ВСЕ СУЩЕСТВУЮЩИЕ ПРОПСЫ И className БЕЗ ИЗМЕНЕНИЙ... */
+      /* ...ОСТАВЬ ВСЕ СУЩЕСТВУЮЩИЕ ПРОПСЫ И className БЕЗ ИЗМЕНЕНИЙ... */
     >
       {/* ...чекбокс и текстовый блок карточки — без изменений... */}
 
@@ -846,5 +848,5 @@ bun run build
 
 ---
 
-_Источник программы: составила и прислала Мария (логопед и куратор), центр
-«Белая Ворона», конец июня 2026; для Мартина, 3 г 4 мес._
+*Источник программы: составила и прислала Мария (логопед и куратор), центр
+«Белая Ворона», конец июня 2026; для Мартина, 3 г 4 мес.*
