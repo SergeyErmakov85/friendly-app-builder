@@ -2,6 +2,7 @@ import type { Category, DayStat, Game } from "./types";
 import { MAX_DOTS } from "./types";
 import { categories as mockCategories, games as mockGames } from "./mock";
 import { speechCategories, speechGames } from "./speechGames";
+import { esdmCategories, esdmGames } from "./esdmGames";
 
 const dateKey = (d: Date): string => {
   const y = d.getFullYear();
@@ -35,20 +36,24 @@ interface DataSet {
   categories: Category[];
   historyKey: string;
   legacyKeys?: string[];
+  notesKey?: string;
 }
 
 class DataServiceImpl {
   private games: Game[];
   private categories: Category[];
   private history: Record<string, DayCounts> = {};
+  private notes: Record<string, string> = {};
   private readonly HISTORY_KEY: string;
   private readonly LEGACY_KEYS: string[];
+  private readonly NOTES_KEY?: string;
 
   constructor(data: DataSet) {
     this.games = data.games.map((g) => ({ ...g, count: 0 }));
     this.categories = data.categories;
     this.HISTORY_KEY = data.historyKey;
     this.LEGACY_KEYS = data.legacyKeys ?? [];
+    this.NOTES_KEY = data.notesKey;
     this.hydrate();
   }
 
@@ -79,6 +84,10 @@ class DataServiceImpl {
       if (raw) {
         const parsed = JSON.parse(raw) as Record<string, DayCounts>;
         this.history = { ...this.history, ...parsed };
+      }
+      if (this.NOTES_KEY) {
+        const rawNotes = window.localStorage.getItem(this.NOTES_KEY);
+        if (rawNotes) this.notes = JSON.parse(rawNotes) as Record<string, string>;
       }
     } catch {
       this.history = {};
@@ -157,6 +166,28 @@ class DataServiceImpl {
     );
     this.writeToday();
     return this.games;
+  }
+
+  /** Отметки игры за текущую неделю (пн..вс). */
+  getGameWeek(id: string): boolean[] {
+    const now = new Date();
+    const monday = shiftKey(dateKey(now), -((now.getDay() + 6) % 7));
+    return Array.from({ length: 7 }, (_, i) => {
+      const key = shiftKey(monday, i);
+      return (this.history[key]?.[id] ?? 0) > 0;
+    });
+  }
+
+  getNote(id: string): string {
+    return this.notes[id] ?? "";
+  }
+
+  setNote(id: string, text: string) {
+    if (text.trim()) this.notes[id] = text;
+    else delete this.notes[id];
+    if (typeof window !== "undefined" && this.NOTES_KEY) {
+      window.localStorage.setItem(this.NOTES_KEY, JSON.stringify(this.notes));
+    }
   }
 
   getDailyProgress() {
@@ -287,4 +318,12 @@ export const SpeechGamesService = new DataServiceImpl({
   games: speechGames,
   categories: speechCategories,
   historyKey: "tracker.speech.counts.v1",
+});
+
+/** Игры по Денверской модели (/esdm): отдельная история + заметки родителя. */
+export const EsdmService = new DataServiceImpl({
+  games: esdmGames,
+  categories: esdmCategories,
+  historyKey: "tracker.esdm.counts.v1",
+  notesKey: "tracker.esdm.notes.v1",
 });

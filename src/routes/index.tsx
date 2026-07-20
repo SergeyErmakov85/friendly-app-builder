@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, Gamepad2, Sparkles } from "lucide-react";
+import { Activity, Gamepad2, Puzzle, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
@@ -85,6 +85,13 @@ function TodayPage() {
               >
                 <Gamepad2 className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
                 Игры
+              </Link>
+              <Link
+                to="/esdm"
+                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+              >
+                <Puzzle className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                ESDM
               </Link>
             </div>
           </div>
