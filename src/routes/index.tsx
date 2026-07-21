@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, Gamepad2, Puzzle, Sparkles } from "lucide-react";
+import { Dumbbell, Gamepad2, Puzzle, Sparkles, ToyBrick } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
@@ -71,7 +71,7 @@ function TodayPage() {
               <h1 className="text-3xl font-extrabold text-foreground">Сегодня</h1>
               <p className="mt-1 text-sm capitalize text-muted-foreground">{formatToday()}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <Link
                 to="/kinesiotherapy"
                 className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
@@ -92,6 +92,13 @@ function TodayPage() {
               >
                 <Puzzle className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
                 ESDM
+              </Link>
+              <Link
+                to="/toys"
+                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+              >
+                <ToyBrick className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                Игрушки
               </Link>
             </div>
           </div>

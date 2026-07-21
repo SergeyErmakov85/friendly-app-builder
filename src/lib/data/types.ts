@@ -52,3 +52,13 @@ export interface DayStat {
 }
 
 export const MAX_DOTS = 10;
+
+/** Запись в дневнике «Игрушки»: фото + название игрушки + описание игры. */
+export interface ToyLogEntry {
+  id: string;
+  toyName: string;
+  description: string;
+  /** Фото в виде data-URL (base64), хранятся в IndexedDB. */
+  photos: string[];
+  createdAt: string; // ISO
+}

@@ -15,6 +15,7 @@ import { Route as MoreRouteImport } from './routes/more'
 import { Route as KinesiotherapyRouteImport } from './routes/kinesiotherapy'
 import { Route as EsdmRouteImport } from './routes/esdm'
 import { Route as DevelopmentGamesRouteImport } from './routes/development-games'
+import { Route as ToysRouteImport } from './routes/toys'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StatsRoute = StatsRouteImport.update({
@@ -47,6 +48,11 @@ const DevelopmentGamesRoute = DevelopmentGamesRouteImport.update({
   path: '/development-games',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToysRoute = ToysRouteImport.update({
+  id: '/toys',
+  path: '/toys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
+  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
+  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
+  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/development-games'
+    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/development-games'
+    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/development-games'
+    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevelopmentGamesRoute: typeof DevelopmentGamesRoute
+  ToysRoute: typeof ToysRoute
   EsdmRoute: typeof EsdmRoute
   KinesiotherapyRoute: typeof KinesiotherapyRoute
   MoreRoute: typeof MoreRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopmentGamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/toys': {
+      id: '/toys'
+      path: '/toys'
+      fullPath: '/toys'
+      preLoaderRoute: typeof ToysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevelopmentGamesRoute: DevelopmentGamesRoute,
+  ToysRoute: ToysRoute,
   EsdmRoute: EsdmRoute,
   KinesiotherapyRoute: KinesiotherapyRoute,
   MoreRoute: MoreRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
