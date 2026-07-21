@@ -66,38 +66,38 @@ function TodayPage() {
       <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-white to-[oklch(0.965_0.02_270)] px-5 pb-8 pt-10">
         <GradientBlobs />
         <div className="relative">
-          <div className="flex items-end justify-between">
-            <div>
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
               <h1 className="text-3xl font-extrabold text-foreground">Сегодня</h1>
               <p className="mt-1 text-sm capitalize text-muted-foreground">{formatToday()}</p>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
               <Link
                 to="/kinesiotherapy"
-                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+                className="flex shrink-0 flex-col items-center gap-1 rounded-xl bg-surface px-2 py-1.5 text-[10px] font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
-                <Dumbbell className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                <Dumbbell className="h-4 w-4 text-[oklch(0.62_0.22_264)]" />
                 Кинезио
               </Link>
               <Link
                 to="/development-games"
-                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+                className="flex shrink-0 flex-col items-center gap-1 rounded-xl bg-surface px-2 py-1.5 text-[10px] font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
-                <Gamepad2 className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                <Gamepad2 className="h-4 w-4 text-[oklch(0.62_0.22_264)]" />
                 Игры
               </Link>
               <Link
                 to="/esdm"
-                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+                className="flex shrink-0 flex-col items-center gap-1 rounded-xl bg-surface px-2 py-1.5 text-[10px] font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
-                <Puzzle className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                <Puzzle className="h-4 w-4 text-[oklch(0.62_0.22_264)]" />
                 ESDM
               </Link>
               <Link
                 to="/toys"
-                className="flex flex-col items-center gap-1 rounded-2xl bg-surface px-3 py-2 text-xs font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
+                className="flex shrink-0 flex-col items-center gap-1 rounded-xl bg-surface px-2 py-1.5 text-[10px] font-semibold text-foreground shadow-card ring-1 ring-black/[0.04] transition-transform active:scale-[0.96]"
               >
-                <ToyBrick className="h-5 w-5 text-[oklch(0.62_0.22_264)]" />
+                <ToyBrick className="h-4 w-4 text-[oklch(0.62_0.22_264)]" />
                 Игрушки
               </Link>
             </div>
