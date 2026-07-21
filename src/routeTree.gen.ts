@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToysRouteImport } from './routes/toys'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as KinesiotherapyRouteImport } from './routes/kinesiotherapy'
 import { Route as EsdmRouteImport } from './routes/esdm'
 import { Route as DevelopmentGamesRouteImport } from './routes/development-games'
-import { Route as ToysRouteImport } from './routes/toys'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ToysRoute = ToysRouteImport.update({
+  id: '/toys',
+  path: '/toys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -48,11 +53,6 @@ const DevelopmentGamesRoute = DevelopmentGamesRouteImport.update({
   path: '/development-games',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToysRoute = ToysRouteImport.update({
-  id: '/toys',
-  path: '/toys',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -62,80 +62,87 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
-  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/toys': typeof ToysRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
-  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/toys': typeof ToysRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/development-games': typeof DevelopmentGamesRoute
-  '/toys': typeof ToysRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
   '/more': typeof MoreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/toys': typeof ToysRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/development-games'
-    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
     | '/sitemap.xml'
     | '/stats'
+    | '/toys'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/development-games'
-    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
     | '/sitemap.xml'
     | '/stats'
+    | '/toys'
   id:
     | '__root__'
     | '/'
     | '/development-games'
-    | '/toys'
     | '/esdm'
     | '/kinesiotherapy'
     | '/more'
     | '/sitemap.xml'
     | '/stats'
+    | '/toys'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevelopmentGamesRoute: typeof DevelopmentGamesRoute
-  ToysRoute: typeof ToysRoute
   EsdmRoute: typeof EsdmRoute
   KinesiotherapyRoute: typeof KinesiotherapyRoute
   MoreRoute: typeof MoreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StatsRoute: typeof StatsRoute
+  ToysRoute: typeof ToysRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/toys': {
+      id: '/toys'
+      path: '/toys'
+      fullPath: '/toys'
+      preLoaderRoute: typeof ToysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
@@ -178,13 +185,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopmentGamesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/toys': {
-      id: '/toys'
-      path: '/toys'
-      fullPath: '/toys'
-      preLoaderRoute: typeof ToysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -198,12 +198,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevelopmentGamesRoute: DevelopmentGamesRoute,
-  ToysRoute: ToysRoute,
   EsdmRoute: EsdmRoute,
   KinesiotherapyRoute: KinesiotherapyRoute,
   MoreRoute: MoreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StatsRoute: StatsRoute,
+  ToysRoute: ToysRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
