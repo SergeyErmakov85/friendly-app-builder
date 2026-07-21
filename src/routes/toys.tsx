@@ -60,16 +60,35 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
   const onSave = async () => {
     if (!canSave || saving) return;
     setSaving(true);
-    const entry = await ToyLogService.add({
-      toyName: toyName.trim(),
-      description: description.trim(),
-      photos,
-    });
-    setSaving(false);
-    onAdded(entry);
-    reset();
-    setOpen(false);
+    try {
+      const entry = await ToyLogService.add({
+        toyName: toyName.trim(),
+        description: description.trim(),
+        photos,
+      });
+      onAdded(entry);
+      reset();
+      setOpen(false);
+    } catch (err) {
+      console.error("[toys] add failed", err);
+      alert(
+        "Не получилось сохранить запись. Возможно, фото слишком большие или закончилось место в браузере. Запись останется на экране до перезагрузки.",
+      );
+      // Фолбэк: показываем запись в UI, даже если IDB отказал.
+      onAdded({
+        id: `local-${Date.now()}`,
+        toyName: toyName.trim(),
+        description: description.trim(),
+        photos,
+        createdAt: new Date().toISOString(),
+      });
+      reset();
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   return (
     <Drawer
