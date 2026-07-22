@@ -162,7 +162,8 @@ function RootComponent() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!signedIn && pathname !== "/auth") {
+    const publicPaths = ["/", "/auth"];
+    if (!signedIn && !publicPaths.includes(pathname)) {
       navigate({ to: "/auth", replace: true });
     } else if (signedIn && pathname === "/auth") {
       navigate({ to: "/", replace: true });

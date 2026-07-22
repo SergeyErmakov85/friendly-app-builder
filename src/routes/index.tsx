@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, Gamepad2, Puzzle, Sparkles, ToyBrick } from "lucide-react";
+import { Dumbbell, Gamepad2, LogIn, Puzzle, Sparkles, ToyBrick, UserPlus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { ProgressCircle } from "@/components/ProgressCircle";
 import { CategoryBlock } from "@/components/CategoryBlock";
@@ -34,6 +35,15 @@ function TodayPage() {
   const categories = useMemo(() => DataService.getCategories(), []);
   const [games, setGames] = useState<Game[]>(() => DataService.getGames());
   const [highlightId, setHighlightId] = useState<string | undefined>();
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setSignedIn(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const onToggle = (id: string) => {
     setGames(DataService.toggleGame(id));
@@ -124,6 +134,35 @@ function TodayPage() {
               </div>
             </div>
           </motion.div>
+
+          {signedIn === false && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mt-5 space-y-2.5"
+            >
+              <p className="text-center text-xs text-muted-foreground">
+                Войдите, чтобы отметки, статистика и фото игрушек сохранялись в облаке
+              </p>
+              <Link
+                to="/auth"
+                search={{ mode: "signin" }}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-primary px-5 py-3.5 text-base font-semibold text-white shadow-glow transition-transform active:scale-[0.98]"
+              >
+                <LogIn className="h-5 w-5" />
+                Войти
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "signup" }}
+                className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-[oklch(0.62_0.22_264)] px-5 py-3 text-base font-semibold text-[oklch(0.45_0.25_285)] transition-transform active:scale-[0.98]"
+              >
+                <UserPlus className="h-5 w-5" />
+                Зарегистрироваться
+              </Link>
+            </motion.div>
+          )}
 
           <button
             onClick={handleSuggest}
