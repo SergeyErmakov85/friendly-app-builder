@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GradientBlobs } from "@/components/GradientBlobs";
-import { Sparkles } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -22,7 +22,7 @@ type Mode = "signin" | "signup" | "forgot" | "reset";
 function translateAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("invalid login credentials"))
-    return "Неверный email или пароль. Если не помните пароль — нажмите «Забыли пароль?».";
+    return "Неверный email или пароль. Проверьте раскладку клавиатуры и Caps Lock (нажмите «глаз», чтобы увидеть пароль). Если не помните пароль — нажмите «Забыли пароль?».";
   if (m.includes("already registered") || m.includes("already been registered"))
     return "Такой пользователь уже зарегистрирован. Попробуйте войти или сбросить пароль.";
   if (m.includes("email not confirmed"))
@@ -44,6 +44,7 @@ function AuthPage() {
   });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,14 +70,17 @@ function AuthPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    // Мобильные клавиатуры и автозаполнение часто добавляют пробел к email —
+    // Supabase в этом случае отвечает «Invalid login credentials».
+    const cleanEmail = email.trim().toLowerCase();
     if (mode === "forgot") {
-      if (!email) {
+      if (!cleanEmail) {
         setError("Введите email, на который зарегистрирован аккаунт.");
         return;
       }
       setLoading(true);
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
           redirectTo: `${window.location.origin}/auth`,
         });
         if (error) setError(translateAuthError(error.message));
@@ -90,13 +94,13 @@ function AuthPage() {
       return;
     }
     if (mode === "reset") {
-      if (password.length < 6) {
+      if (password.trim().length < 6) {
         setError("Новый пароль должен быть не короче 6 символов.");
         return;
       }
       setLoading(true);
       try {
-        const { error } = await supabase.auth.updateUser({ password });
+        const { error } = await supabase.auth.updateUser({ password: password.trim() });
         if (error) setError(translateAuthError(error.message));
         else navigate({ to: "/" });
       } finally {
@@ -104,24 +108,38 @@ function AuthPage() {
       }
       return;
     }
-    if (!email || password.length < 6) {
+    if (!cleanEmail || password.trim().length < 6) {
       setError("Введите email и пароль (минимум 6 символов).");
       return;
     }
     setLoading(true);
     try {
-      const { error } =
-        mode === "signin"
-          ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({
-              email,
-              password,
-              options: { emailRedirectTo: window.location.origin },
-            });
-      if (error) {
-        setError(translateAuthError(error.message));
+      if (mode === "signin") {
+        let { error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+        // Если не подошло, а вокруг пароля есть случайные пробелы — пробуем без них.
+        if (
+          error &&
+          error.message.toLowerCase().includes("invalid login credentials") &&
+          password.trim() !== password
+        ) {
+          ({ error } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: password.trim(),
+          }));
+        }
+        if (error) setError(translateAuthError(error.message));
+        else navigate({ to: "/" });
       } else {
-        navigate({ to: "/" });
+        const { error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password: password.trim(),
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (error) setError(translateAuthError(error.message));
+        else navigate({ to: "/" });
       }
     } finally {
       setLoading(false);
@@ -179,14 +197,24 @@ function AuthPage() {
               <label className="block text-xs font-medium text-muted-foreground">
                 {mode === "reset" ? "Новый пароль" : "Пароль"}
               </label>
-              <input
-                type="password"
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Минимум 6 символов"
-                className="w-full rounded-2xl bg-surface-2 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none ring-1 ring-black/[0.04] transition-shadow focus:ring-2 focus:ring-[oklch(0.62_0.22_264)]"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Минимум 6 символов"
+                  className="w-full rounded-2xl bg-surface-2 px-3 py-2.5 pr-11 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none ring-1 ring-black/[0.04] transition-shadow focus:ring-2 focus:ring-[oklch(0.62_0.22_264)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                  className="absolute inset-y-0 right-0 grid w-11 place-items-center text-muted-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </>
           )}
 
