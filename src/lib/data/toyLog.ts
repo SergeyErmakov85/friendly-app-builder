@@ -25,7 +25,7 @@ async function signPaths(paths: string[]): Promise<string[]> {
     .from(BUCKET)
     .createSignedUrls(paths, 60 * 60);
   if (error || !data) return [];
-  return data.map((d) => d.signedUrl);
+  return data.map((d) => d.signedUrl).filter((u): u is string => !!u);
 }
 
 function extFromMime(mime: string): string {

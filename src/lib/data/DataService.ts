@@ -176,12 +176,14 @@ export class DataServiceImpl {
 
   /** Основной чекбокс: 0 ⟷ 1 (одна отметка). */
   toggleGame(id: string): Game[] {
+    let nextCount = 0;
     this.games = this.games.map((g) => {
       if (g.id !== id) return g;
-      const next = (g.count ?? 0) > 0 ? 0 : 1;
-      return { ...g, count: next, status: next > 0 ? "done" : "todo" };
+      nextCount = (g.count ?? 0) > 0 ? 0 : 1;
+      return { ...g, count: nextCount, status: nextCount > 0 ? "done" : "todo" };
     });
     this.writeToday();
+    this.syncHandler?.({ kind: "mark", gameId: id, date: dateKey(new Date()), count: nextCount });
     return this.games;
   }
 
@@ -192,6 +194,7 @@ export class DataServiceImpl {
       g.id === id ? { ...g, count: c, status: c > 0 ? "done" : "todo" } : g,
     );
     this.writeToday();
+    this.syncHandler?.({ kind: "mark", gameId: id, date: dateKey(new Date()), count: c });
     return this.games;
   }
 
@@ -210,11 +213,13 @@ export class DataServiceImpl {
   }
 
   setNote(id: string, text: string) {
-    if (text.trim()) this.notes[id] = text;
+    const trimmed = text.trim();
+    if (trimmed) this.notes[id] = trimmed;
     else delete this.notes[id];
     if (typeof window !== "undefined" && this.NOTES_KEY) {
       window.localStorage.setItem(this.NOTES_KEY, JSON.stringify(this.notes));
     }
+    this.syncHandler?.({ kind: "note", gameId: id, note: trimmed });
   }
 
   getDailyProgress() {
