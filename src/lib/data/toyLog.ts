@@ -70,7 +70,8 @@ export const ToyLogService = {
         contentType: file.type,
         upsert: true,
       });
-      if (!error) paths.push(path);
+      if (error) throw error;
+      paths.push(path);
     }
     const { data, error } = await supabase
       .from("toy_entries")

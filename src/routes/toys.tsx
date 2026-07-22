@@ -265,6 +265,7 @@ function ToysPage() {
   useEffect(() => {
     ToyLogService.list()
       .then(setEntries)
+      .catch(() => setEntries([]))
       .finally(() => setLoading(false));
   }, []);
 
