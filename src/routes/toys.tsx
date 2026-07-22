@@ -128,7 +128,7 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
               className="hidden"
               onChange={(e) => onFiles(e.target.files)}
             />
-            {photos.length === 0 ? (
+            {previews.length === 0 ? (
               <button
                 onClick={() => fileRef.current?.click()}
                 className="flex w-full flex-col items-center gap-2 rounded-2xl bg-surface-2 px-4 py-6 text-sm font-medium text-muted-foreground ring-1 ring-black/[0.04] transition-colors active:scale-[0.98]"
@@ -138,14 +138,14 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
               </button>
             ) : (
               <div className="grid grid-cols-3 gap-2">
-                {photos.map((src, i) => (
+                {previews.map((src, i) => (
                   <div
                     key={i}
                     className="relative aspect-square overflow-hidden rounded-xl ring-1 ring-black/[0.04]"
                   >
                     <img src={src} alt="" className="h-full w-full object-cover" />
                     <button
-                      onClick={() => setPhotos((p) => p.filter((_, idx) => idx !== i))}
+                      onClick={() => removeAt(i)}
                       className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white"
                     >
                       <X className="h-3.5 w-3.5" />
