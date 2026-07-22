@@ -4,14 +4,18 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { NavigationBar } from "@/components/NavigationBar";
+import { supabase } from "@/integrations/supabase/client";
+import { startCloudSync } from "@/lib/data/cloudSync";
 
 function NotFoundComponent() {
   return (
@@ -139,12 +143,39 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [ready, setReady] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean>(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    startCloudSync();
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      setReady(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setSignedIn(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!signedIn && pathname !== "/auth") {
+      navigate({ to: "/auth", replace: true });
+    } else if (signedIn && pathname === "/auth") {
+      navigate({ to: "/", replace: true });
+    }
+  }, [ready, signedIn, pathname, navigate]);
+
+  const showNav = signedIn && pathname !== "/auth";
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="mx-auto min-h-screen max-w-md bg-background pb-28">
-        <Outlet />
-        <NavigationBar />
+        {ready ? <Outlet /> : null}
+        {showNav && <NavigationBar />}
       </div>
     </QueryClientProvider>
   );

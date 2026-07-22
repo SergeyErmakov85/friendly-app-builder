@@ -39,23 +39,38 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
   const [open, setOpen] = useState(false);
   const [toyName, setToyName] = useState("");
   const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setToyName("");
     setDescription("");
-    setPhotos([]);
+    setFiles([]);
+    setPreviews((prev) => {
+      prev.forEach((url) => URL.revokeObjectURL(url));
+      return [];
+    });
   };
 
-  const onFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const dataUrls = await ToyLogService.readPhotos(files);
-    setPhotos((prev) => [...prev, ...dataUrls]);
+  const onFiles = (list: FileList | null) => {
+    if (!list || list.length === 0) return;
+    const arr = Array.from(list);
+    setFiles((prev) => [...prev, ...arr]);
+    setPreviews((prev) => [...prev, ...arr.map((f) => URL.createObjectURL(f))]);
   };
 
-  const canSave = description.trim().length > 0 || photos.length > 0;
+  const removeAt = (i: number) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setPreviews((prev) => {
+      const url = prev[i];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, idx) => idx !== i);
+    });
+  };
+
+  const canSave = description.trim().length > 0 || files.length > 0;
 
   const onSave = async () => {
     if (!canSave || saving) return;
@@ -64,30 +79,20 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
       const entry = await ToyLogService.add({
         toyName: toyName.trim(),
         description: description.trim(),
-        photos,
+        files,
       });
       onAdded(entry);
       reset();
       setOpen(false);
     } catch (err) {
       console.error("[toys] add failed", err);
-      alert(
-        "Не получилось сохранить запись. Возможно, фото слишком большие или закончилось место в браузере. Запись останется на экране до перезагрузки.",
-      );
-      // Фолбэк: показываем запись в UI, даже если IDB отказал.
-      onAdded({
-        id: `local-${Date.now()}`,
-        toyName: toyName.trim(),
-        description: description.trim(),
-        photos,
-        createdAt: new Date().toISOString(),
-      });
-      reset();
-      setOpen(false);
+      alert("Не получилось сохранить запись. Проверьте соединение и попробуйте ещё раз.");
     } finally {
       setSaving(false);
     }
   };
+
+
 
 
   return (
@@ -123,7 +128,7 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
               className="hidden"
               onChange={(e) => onFiles(e.target.files)}
             />
-            {photos.length === 0 ? (
+            {previews.length === 0 ? (
               <button
                 onClick={() => fileRef.current?.click()}
                 className="flex w-full flex-col items-center gap-2 rounded-2xl bg-surface-2 px-4 py-6 text-sm font-medium text-muted-foreground ring-1 ring-black/[0.04] transition-colors active:scale-[0.98]"
@@ -133,14 +138,14 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
               </button>
             ) : (
               <div className="grid grid-cols-3 gap-2">
-                {photos.map((src, i) => (
+                {previews.map((src, i) => (
                   <div
                     key={i}
                     className="relative aspect-square overflow-hidden rounded-xl ring-1 ring-black/[0.04]"
                   >
                     <img src={src} alt="" className="h-full w-full object-cover" />
                     <button
-                      onClick={() => setPhotos((p) => p.filter((_, idx) => idx !== i))}
+                      onClick={() => removeAt(i)}
                       className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white"
                     >
                       <X className="h-3.5 w-3.5" />

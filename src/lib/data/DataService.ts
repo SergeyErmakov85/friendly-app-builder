@@ -39,7 +39,11 @@ interface DataSet {
   notesKey?: string;
 }
 
-class DataServiceImpl {
+export type SyncPayload =
+  | { kind: "mark"; gameId: string; date: string; count: number }
+  | { kind: "note"; gameId: string; note: string };
+
+export class DataServiceImpl {
   private games: Game[];
   private categories: Category[];
   private history: Record<string, DayCounts> = {};
@@ -47,6 +51,7 @@ class DataServiceImpl {
   private readonly HISTORY_KEY: string;
   private readonly LEGACY_KEYS: string[];
   private readonly NOTES_KEY?: string;
+  private syncHandler?: (payload: SyncPayload) => void;
 
   constructor(data: DataSet) {
     this.games = data.games.map((g) => ({ ...g, count: 0 }));
@@ -55,6 +60,28 @@ class DataServiceImpl {
     this.LEGACY_KEYS = data.legacyKeys ?? [];
     this.NOTES_KEY = data.notesKey;
     this.hydrate();
+  }
+
+  setSyncHandler(fn: (payload: SyncPayload) => void) {
+    this.syncHandler = fn;
+  }
+
+  replaceHistory(next: Record<string, DayCounts>) {
+    this.history = { ...next };
+    this.persist();
+    const today = this.history[dateKey(new Date())] ?? {};
+    this.games = this.games.map((g) => ({
+      ...g,
+      count: today[g.id] ?? 0,
+      status: (today[g.id] ?? 0) > 0 ? "done" : "todo",
+    }));
+  }
+
+  replaceNotes(next: Record<string, string>) {
+    this.notes = { ...next };
+    if (typeof window !== "undefined" && this.NOTES_KEY) {
+      window.localStorage.setItem(this.NOTES_KEY, JSON.stringify(this.notes));
+    }
   }
 
   private hydrate() {
@@ -149,12 +176,14 @@ class DataServiceImpl {
 
   /** Основной чекбокс: 0 ⟷ 1 (одна отметка). */
   toggleGame(id: string): Game[] {
+    let nextCount = 0;
     this.games = this.games.map((g) => {
       if (g.id !== id) return g;
-      const next = (g.count ?? 0) > 0 ? 0 : 1;
-      return { ...g, count: next, status: next > 0 ? "done" : "todo" };
+      nextCount = (g.count ?? 0) > 0 ? 0 : 1;
+      return { ...g, count: nextCount, status: nextCount > 0 ? "done" : "todo" };
     });
     this.writeToday();
+    this.syncHandler?.({ kind: "mark", gameId: id, date: dateKey(new Date()), count: nextCount });
     return this.games;
   }
 
@@ -165,6 +194,7 @@ class DataServiceImpl {
       g.id === id ? { ...g, count: c, status: c > 0 ? "done" : "todo" } : g,
     );
     this.writeToday();
+    this.syncHandler?.({ kind: "mark", gameId: id, date: dateKey(new Date()), count: c });
     return this.games;
   }
 
@@ -183,11 +213,13 @@ class DataServiceImpl {
   }
 
   setNote(id: string, text: string) {
-    if (text.trim()) this.notes[id] = text;
+    const trimmed = text.trim();
+    if (trimmed) this.notes[id] = trimmed;
     else delete this.notes[id];
     if (typeof window !== "undefined" && this.NOTES_KEY) {
       window.localStorage.setItem(this.NOTES_KEY, JSON.stringify(this.notes));
     }
+    this.syncHandler?.({ kind: "note", gameId: id, note: trimmed });
   }
 
   getDailyProgress() {

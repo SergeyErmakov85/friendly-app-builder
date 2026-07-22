@@ -1,82 +1,109 @@
+import { supabase } from "@/integrations/supabase/client";
 import type { ToyLogEntry } from "./types";
 
 /**
- * ToyLogService — дневник «Игрушки» (фото + название игрушки + описание игры).
+ * ToyLogService — дневник «Игрушки», хранится в Supabase:
+ * записи → таблица `toy_entries`, фото → приватный bucket `toy-photos`
+ * (структура ключей: `<user_id>/<toyEntryId>/<index>.<ext>`).
  *
- * Фото хранятся как base64 data-URL в IndexedDB (не localStorage — там лимит
- * ~5 МБ, фотографий за пару месяцев туда не поместится). Интерфейс асинхронный,
- * чтобы позже можно было подменить реализацию на Supabase Storage без правок UI.
+ * В интерфейс отдаём фото как signed URL — это data-совместимо с прежним UI,
+ * где `entry.photos` подставлялся в `<img src>`.
  */
 
-const DB_NAME = "tracker.toyLog.v1";
-const STORE = "entries";
+const BUCKET = "toy-photos";
 
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof indexedDB === "undefined") {
-      reject(new Error("IndexedDB недоступен"));
-      return;
-    }
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: "id" });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+async function requireUser(): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const id = data.user?.id;
+  if (!id) throw new Error("Требуется вход");
+  return id;
 }
 
-async function withStore<T>(
-  mode: IDBTransactionMode,
-  fn: (store: IDBObjectStore) => IDBRequest<T>,
-): Promise<T> {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, mode);
-    const store = tx.objectStore(STORE);
-    const req = fn(store);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-    tx.oncomplete = () => db.close();
-  });
+async function signPaths(paths: string[]): Promise<string[]> {
+  if (paths.length === 0) return [];
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrls(paths, 60 * 60);
+  if (error || !data) return [];
+  return data.map((d) => d.signedUrl).filter((u): u is string => !!u);
+}
+
+function extFromMime(mime: string): string {
+  if (mime.includes("png")) return "png";
+  if (mime.includes("webp")) return "webp";
+  if (mime.includes("gif")) return "gif";
+  return "jpg";
 }
 
 export const ToyLogService = {
   async list(): Promise<ToyLogEntry[]> {
-    const all = await withStore<ToyLogEntry[]>("readonly", (s) => s.getAll());
-    return all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const userId = await requireUser();
+    const { data, error } = await supabase
+      .from("toy_entries")
+      .select("id,toy_name,description,photo_paths,created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return Promise.all(
+      data.map(async (row) => ({
+        id: row.id,
+        toyName: row.toy_name,
+        description: row.description,
+        createdAt: row.created_at,
+        photos: await signPaths(row.photo_paths ?? []),
+      })),
+    );
   },
 
-  async add(entry: Omit<ToyLogEntry, "id" | "createdAt">): Promise<ToyLogEntry> {
-    const full: ToyLogEntry = {
-      ...entry,
-      id: `toy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      createdAt: new Date().toISOString(),
+  async add(entry: {
+    toyName: string;
+    description: string;
+    files: File[];
+  }): Promise<ToyLogEntry> {
+    const userId = await requireUser();
+    const entryId = crypto.randomUUID();
+    const paths: string[] = [];
+    for (let i = 0; i < entry.files.length; i++) {
+      const file = entry.files[i];
+      const path = `${userId}/${entryId}/${i}.${extFromMime(file.type)}`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+        contentType: file.type,
+        upsert: true,
+      });
+      if (!error) paths.push(path);
+    }
+    const { data, error } = await supabase
+      .from("toy_entries")
+      .insert({
+        id: entryId,
+        user_id: userId,
+        toy_name: entry.toyName,
+        description: entry.description,
+        photo_paths: paths,
+      })
+      .select("id,toy_name,description,photo_paths,created_at")
+      .single();
+    if (error || !data) throw error ?? new Error("insert failed");
+    return {
+      id: data.id,
+      toyName: data.toy_name,
+      description: data.description,
+      createdAt: data.created_at,
+      photos: await signPaths(data.photo_paths ?? []),
     };
-    await withStore("readwrite", (s) => s.add(full));
-    return full;
   },
 
   async remove(id: string): Promise<void> {
-    await withStore("readwrite", (s) => s.delete(id));
-  },
-
-  /** Читает файлы изображений и возвращает их как data-URL. */
-  readPhotos(files: FileList | File[]): Promise<string[]> {
-    const list = Array.from(files);
-    return Promise.all(
-      list.map(
-        (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          }),
-      ),
-    );
+    const userId = await requireUser();
+    const { data } = await supabase
+      .from("toy_entries")
+      .select("photo_paths")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data?.photo_paths?.length) {
+      await supabase.storage.from(BUCKET).remove(data.photo_paths);
+    }
+    await supabase.from("toy_entries").delete().eq("id", id).eq("user_id", userId);
   },
 };

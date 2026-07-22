@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   Activity,
   Bell,
@@ -8,13 +8,16 @@ import {
   Download,
   Globe,
   Info,
+  LogOut,
   Moon,
   Palette,
   Trash2,
   Upload,
+  UserRound,
 } from "lucide-react";
 import { GradientBlobs } from "@/components/GradientBlobs";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/more")({
   component: MorePage,
@@ -71,6 +74,18 @@ function MorePage() {
   const [breaks, setBreaks] = useState(true);
   const [evening, setEvening] = useState(true);
   const [dark, setDark] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
 
   return (
     <div>
@@ -83,6 +98,20 @@ function MorePage() {
       </header>
 
       <main className="space-y-5 px-4 pt-6">
+        <Section
+          icon={<UserRound className="h-4 w-4" />}
+          title="Аккаунт"
+          description={email ?? "Вход выполнен"}
+        >
+          <button
+            onClick={signOut}
+            className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-[oklch(0.62_0.22_264)] px-5 py-2.5 text-sm font-semibold text-[oklch(0.45_0.25_285)]"
+          >
+            <LogOut className="h-4 w-4" />
+            Выйти
+          </button>
+        </Section>
+
         <Section
           icon={<Activity className="h-4 w-4" />}
           title="Материалы"

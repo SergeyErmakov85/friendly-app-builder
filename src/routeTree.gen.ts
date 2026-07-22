@@ -16,6 +16,7 @@ import { Route as MoreRouteImport } from './routes/more'
 import { Route as KinesiotherapyRouteImport } from './routes/kinesiotherapy'
 import { Route as EsdmRouteImport } from './routes/esdm'
 import { Route as DevelopmentGamesRouteImport } from './routes/development-games'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ToysRoute = ToysRouteImport.update({
@@ -53,6 +54,11 @@ const DevelopmentGamesRoute = DevelopmentGamesRouteImport.update({
   path: '/development-games',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/development-games': typeof DevelopmentGamesRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/development-games': typeof DevelopmentGamesRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/development-games': typeof DevelopmentGamesRoute
   '/esdm': typeof EsdmRoute
   '/kinesiotherapy': typeof KinesiotherapyRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/development-games'
     | '/esdm'
     | '/kinesiotherapy'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/development-games'
     | '/esdm'
     | '/kinesiotherapy'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/development-games'
     | '/esdm'
     | '/kinesiotherapy'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   DevelopmentGamesRoute: typeof DevelopmentGamesRoute
   EsdmRoute: typeof EsdmRoute
   KinesiotherapyRoute: typeof KinesiotherapyRoute
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopmentGamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   DevelopmentGamesRoute: DevelopmentGamesRoute,
   EsdmRoute: EsdmRoute,
   KinesiotherapyRoute: KinesiotherapyRoute,
@@ -208,13 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
