@@ -99,6 +99,20 @@ function MorePage() {
 
       <main className="space-y-5 px-4 pt-6">
         <Section
+          icon={<UserRound className="h-4 w-4" />}
+          title="Аккаунт"
+          description={email ?? "Вход выполнен"}
+        >
+          <button
+            onClick={signOut}
+            className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-[oklch(0.62_0.22_264)] px-5 py-2.5 text-sm font-semibold text-[oklch(0.45_0.25_285)]"
+          >
+            <LogOut className="h-4 w-4" />
+            Выйти
+          </button>
+        </Section>
+
+        <Section
           icon={<Activity className="h-4 w-4" />}
           title="Материалы"
           description="Справочные программы и методики."
