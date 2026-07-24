@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -12,6 +13,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { GradientBlobs } from "@/components/GradientBlobs";
+import { ReadyDots } from "@/components/ReadyDots";
+import { KinesioMarks } from "@/lib/data/dailyMarks";
 import {
   Accordion,
   AccordionContent,
@@ -104,7 +107,15 @@ function Chip({ label, value }: { label: string; value?: string }) {
 
 const phaseOrder: ExercisePhase[] = ["warmup", "main", "cooldown"];
 
-function ExerciseItem({ ex }: { ex: KinExercise }) {
+function ExerciseItem({
+  ex,
+  count,
+  onSetCount,
+}: {
+  ex: KinExercise;
+  count: number;
+  onSetCount: (count: number) => void;
+}) {
   return (
     <div className="rounded-2xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
       <div className="text-sm font-bold text-foreground">{ex.title}</div>
@@ -127,11 +138,21 @@ function ExerciseItem({ ex }: { ex: KinExercise }) {
         <Sparkles className="h-3.5 w-3.5" />
         {ex.dose}
       </div>
+
+      <ReadyDots count={count} onSetCount={onSetCount} />
     </div>
   );
 }
 
-function SessionBlock({ number }: { number: number }) {
+function SessionBlock({
+  number,
+  marks,
+  onSetCount,
+}: {
+  number: number;
+  marks: Record<string, number>;
+  onSetCount: (id: string, count: number) => void;
+}) {
   const s = kinSessions.find((x) => x.number === number);
   if (!s) return null;
   return (
@@ -156,7 +177,12 @@ function SessionBlock({ number }: { number: number }) {
               </div>
               <div className="space-y-2.5">
                 {list.map((e) => (
-                  <ExerciseItem key={e.id} ex={e} />
+                  <ExerciseItem
+                    key={e.id}
+                    ex={e}
+                    count={marks[e.id] ?? 0}
+                    onSetCount={(c) => onSetCount(e.id, c)}
+                  />
                 ))}
               </div>
             </div>
@@ -168,6 +194,16 @@ function SessionBlock({ number }: { number: number }) {
 }
 
 function KinesiotherapyPage() {
+  const [marks, setMarks] = useState<Record<string, number>>(() => KinesioMarks.getToday());
+
+  useEffect(() => {
+    KinesioMarks.pullToday().then(setMarks);
+  }, []);
+
+  const onSetCount = (id: string, count: number) => {
+    setMarks(KinesioMarks.setCount(id, count));
+  };
+
   return (
     <div>
       <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-white to-[oklch(0.965_0.02_270)] px-5 pb-8 pt-10">
@@ -330,7 +366,7 @@ function KinesiotherapyPage() {
 
             <Accordion type="multiple" className="mt-3 space-y-2">
               {w.sessions.map((n) => (
-                <SessionBlock key={n} number={n} />
+                <SessionBlock key={n} number={n} marks={marks} onSetCount={onSetCount} />
               ))}
             </Accordion>
 

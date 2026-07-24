@@ -1,8 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, ImagePlus, ToyBrick, Trash2, X } from "lucide-react";
+import {
+  Camera,
+  ImagePlus,
+  Music,
+  Palette,
+  ToyBrick,
+  Trash2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { GradientBlobs } from "@/components/GradientBlobs";
+import { ReadyDots } from "@/components/ReadyDots";
+import { ToysMarks } from "@/lib/data/dailyMarks";
 import {
   Drawer,
   DrawerClose,
@@ -27,6 +38,76 @@ export const Route = createFileRoute("/toys")({
     ],
   }),
 });
+
+/** Постоянные разделы-активности с фото и счётчиком отметок. */
+const activities: {
+  id: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  photos: { src: string; alt: string }[];
+}[] = [
+  {
+    id: "creativity",
+    title: "Творчество",
+    description: "Отмечай, когда рисовал — красками, мелками или карандашами.",
+    icon: Palette,
+    photos: [
+      { src: "/images/paints.jpg", alt: "Краски" },
+      { src: "/images/coloring.jpg", alt: "Разукраска" },
+    ],
+  },
+  {
+    id: "music",
+    title: "Музыка",
+    description: "Отмечай, когда играли на гитаре или пианино, пели песни.",
+    icon: Music,
+    photos: [
+      { src: "/images/guitar.jpg", alt: "Гитара" },
+      { src: "/images/piano.jpg", alt: "Пианино" },
+    ],
+  },
+];
+
+function ActivityCard({
+  activity,
+  count,
+  onSetCount,
+}: {
+  activity: (typeof activities)[number];
+  count: number;
+  onSetCount: (count: number) => void;
+}) {
+  const Icon = activity.icon;
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]"
+    >
+      <div className="mb-3 flex items-center gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-primary text-white shadow-soft">
+          <Icon className="h-4 w-4" />
+        </span>
+        <h2 className="text-lg font-bold text-foreground">{activity.title}</h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-1.5">
+        {activity.photos.map((p) => (
+          <div key={p.src} className="aspect-[4/3] overflow-hidden rounded-2xl bg-surface-2">
+            <img src={p.src} alt={p.alt} className="h-full w-full object-cover" />
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-3 text-sm text-muted-foreground">{activity.description}</p>
+
+      <ReadyDots count={count} onSetCount={onSetCount} />
+    </motion.div>
+  );
+}
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("ru-RU", {
@@ -91,9 +172,6 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
       setSaving(false);
     }
   };
-
-
-
 
   return (
     <Drawer
@@ -197,7 +275,17 @@ function AddEntryDrawer({ onAdded }: { onAdded: (e: ToyLogEntry) => void }) {
   );
 }
 
-function EntryCard({ entry, onDelete }: { entry: ToyLogEntry; onDelete: (id: string) => void }) {
+function EntryCard({
+  entry,
+  count,
+  onSetCount,
+  onDelete,
+}: {
+  entry: ToyLogEntry;
+  count: number;
+  onSetCount: (count: number) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
     <motion.div
       layout
@@ -254,6 +342,8 @@ function EntryCard({ entry, onDelete }: { entry: ToyLogEntry; onDelete: (id: str
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+
+      <ReadyDots count={count} onSetCount={onSetCount} />
     </motion.div>
   );
 }
@@ -261,13 +351,19 @@ function EntryCard({ entry, onDelete }: { entry: ToyLogEntry; onDelete: (id: str
 function ToysPage() {
   const [entries, setEntries] = useState<ToyLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [marks, setMarks] = useState<Record<string, number>>(() => ToysMarks.getToday());
 
   useEffect(() => {
     ToyLogService.list()
       .then(setEntries)
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
+    ToysMarks.pullToday().then(setMarks);
   }, []);
+
+  const onSetCount = (id: string, count: number) => {
+    setMarks(ToysMarks.setCount(id, count));
+  };
 
   const onAdded = (entry: ToyLogEntry) => setEntries((prev) => [entry, ...prev]);
 
@@ -298,6 +394,15 @@ function ToysPage() {
       </header>
 
       <main className="space-y-4 px-4 pt-6 pb-4">
+        {activities.map((a) => (
+          <ActivityCard
+            key={a.id}
+            activity={a}
+            count={marks[a.id] ?? 0}
+            onSetCount={(c) => onSetCount(a.id, c)}
+          />
+        ))}
+
         {loading ? null : entries.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-3xl bg-surface px-6 py-12 text-center shadow-card ring-1 ring-black/[0.04]">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-white shadow-soft">
@@ -311,7 +416,13 @@ function ToysPage() {
         ) : (
           <AnimatePresence initial={false}>
             {entries.map((entry) => (
-              <EntryCard key={entry.id} entry={entry} onDelete={onDelete} />
+              <EntryCard
+                key={entry.id}
+                entry={entry}
+                count={marks[entry.id] ?? 0}
+                onSetCount={(c) => onSetCount(entry.id, c)}
+                onDelete={onDelete}
+              />
             ))}
           </AnimatePresence>
         )}
