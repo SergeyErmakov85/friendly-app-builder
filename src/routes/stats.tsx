@@ -22,7 +22,7 @@ export const Route = createFileRoute("/stats")({
 function StatsPage() {
   const streaks = useMemo(() => DataService.getStreaks(), []);
   const days = useMemo(() => DataService.getDayStats14(), []);
-  const heat = useMemo(() => DataService.getHeatmapCells6w(), []);
+  const month = useMemo(() => DataService.getHeatmapMonth(), []);
   const heatMax = useMemo(() => DataService.getHeatmapMax(), []);
   const week = useMemo(() => DataService.getWeeklyActive(), []);
   const byGame = useMemo(() => DataService.getGameCompletionRates(30), []);
@@ -104,8 +104,8 @@ function StatsPage() {
         </section>
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
-          <h3 className="mb-3 font-semibold">Тепловая карта ядра ★ (6 недель)</h3>
-          <HeatMap cells={heat} max={heatMax} />
+          <h3 className="mb-3 font-semibold">Тепловая карта ядра ★ — {month.label}</h3>
+          <HeatMap cells={month.cells} max={heatMax} />
         </section>
 
         <section className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-black/[0.04]">
