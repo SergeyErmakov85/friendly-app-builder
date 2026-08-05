@@ -271,6 +271,29 @@ export class DataServiceImpl {
     });
   }
 
+  /**
+   * То же, но верхняя строка — текущая неделя (недели идут сверху вниз от
+   * новых к старым). Возвращает дату и число отметок для каждой ячейки.
+   */
+  getHeatmapCells6w(): { date: string; day: number; value: number }[] {
+    const now = new Date();
+    const todayKey = dateKey(now);
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) - 35);
+    const mondayKey = dateKey(monday);
+    const cells = Array.from({ length: 42 }, (_, i) => {
+      const key = shiftKey(mondayKey, i);
+      return {
+        date: key,
+        day: parseKey(key).getDate(),
+        value: key > todayKey ? 0 : this.countsOn(key),
+      };
+    });
+    const weeks: (typeof cells)[] = [];
+    for (let w = 0; w < 6; w++) weeks.push(cells.slice(w * 7, w * 7 + 7));
+    return weeks.reverse().flat();
+  }
+
   getHeatmapMax(): number {
     return this.games.length * MAX_DOTS;
   }
