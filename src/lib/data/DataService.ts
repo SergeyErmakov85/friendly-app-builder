@@ -272,27 +272,30 @@ export class DataServiceImpl {
   }
 
   /**
-   * То же, но верхняя строка — текущая неделя (недели идут сверху вниз от
-   * новых к старым). Возвращает дату и число отметок для каждой ячейки.
+   * Календарь текущего месяца (пн..вс). Пустые ячейки до 1-го числа — null.
    */
-  getHeatmapCells6w(): { date: string; day: number; value: number }[] {
+  getHeatmapMonth(): {
+    label: string;
+    cells: ({ date: string; day: number; value: number } | null)[];
+  } {
     const now = new Date();
     const todayKey = dateKey(now);
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) - 35);
-    const mondayKey = dateKey(monday);
-    const cells = Array.from({ length: 42 }, (_, i) => {
-      const key = shiftKey(mondayKey, i);
-      return {
-        date: key,
-        day: parseKey(key).getDate(),
-        value: key > todayKey ? 0 : this.countsOn(key),
-      };
-    });
-    const weeks: (typeof cells)[] = [];
-    for (let w = 0; w < 6; w++) weeks.push(cells.slice(w * 7, w * 7 + 7));
-    return weeks.reverse().flat();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const first = new Date(year, month, 1);
+    const lead = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells: ({ date: string; day: number; value: number } | null)[] = [];
+    for (let i = 0; i < lead; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(new Date(year, month, d));
+      cells.push({ date: key, day: d, value: key > todayKey ? 0 : this.countsOn(key) });
+    }
+    while (cells.length % 7 !== 0) cells.push(null);
+    const label = first.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+    return { label, cells };
   }
+
 
   getHeatmapMax(): number {
     return this.games.length * MAX_DOTS;
