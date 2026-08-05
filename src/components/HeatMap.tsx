@@ -5,7 +5,7 @@ interface Cell {
 }
 
 interface Props {
-  cells: Cell[]; // length 42 — верхняя строка = текущая неделя
+  cells: (Cell | null)[]; // календарь месяца, пн..вс
   max?: number;
 }
 
@@ -33,22 +33,26 @@ export function HeatMap({ cells, max = 22 }: Props) {
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1.5">
-        {cells.map((c) => (
-          <div
-            key={c.date}
-            className={`relative aspect-square rounded-lg ${c.value > 0 ? "" : "bg-surface-2"} transition-transform hover:scale-110`}
-            style={c.value > 0 ? { backgroundColor: levelColor(c.value, max) } : undefined}
-            title={c.value > 0 ? `отметок: ${c.value} из ${max}` : "нет занятий"}
-          >
-            <span
-              className={`absolute left-1 top-0.5 text-[9px] font-medium leading-none ${
-                c.value > max / 2 ? "text-white/80" : "text-muted-foreground"
-              }`}
+        {cells.map((c, i) =>
+          c === null ? (
+            <div key={`empty-${i}`} className="aspect-square" />
+          ) : (
+            <div
+              key={c.date}
+              className={`relative aspect-square rounded-lg ${c.value > 0 ? "" : "bg-surface-2"} transition-transform hover:scale-110`}
+              style={c.value > 0 ? { backgroundColor: levelColor(c.value, max) } : undefined}
+              title={c.value > 0 ? `отметок: ${c.value} из ${max}` : "нет занятий"}
             >
-              {c.day}
-            </span>
-          </div>
-        ))}
+              <span
+                className={`absolute left-1 top-0.5 text-[9px] font-medium leading-none ${
+                  c.value > max / 2 ? "text-white/80" : "text-muted-foreground"
+                }`}
+              >
+                {c.day}
+              </span>
+            </div>
+          ),
+        )}
       </div>
     </div>
   );
