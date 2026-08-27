@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_links: {
+        Row: {
+          created_at: string
+          member_id: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          member_id: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          member_id?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       game_marks: {
         Row: {
           count: number
@@ -97,7 +115,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      data_owner_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

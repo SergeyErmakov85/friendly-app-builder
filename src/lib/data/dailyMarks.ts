@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { resolveOwnerId } from "./accountLink";
 import { MAX_DOTS } from "./types";
 
 const dateKey = (d: Date): string => {
@@ -14,7 +15,8 @@ type DayCounts = Record<string, number>; // id -> count 0..MAX_DOTS
  * DailyMarksService — лёгкий счётчик «10 кружочков» для страниц, где задания
  * не являются Game (кинезиотерапия, дневник «Игрушки»). История хранится как
  * { "yyyy-mm-dd": { id: count } } в localStorage; при входе в аккаунт отметки
- * дублируются в таблицу `game_marks` (колонка `service` различает разделы).
+ * дублируются в таблицу `game_marks` (колонка `service` различает разделы)
+ * под общим владельцем связанных учёток (см. `accountLink.ts`).
  */
 export class DailyMarksService {
   private history: Record<string, DayCounts> = {};
@@ -65,11 +67,12 @@ export class DailyMarksService {
       const { data } = await supabase.auth.getUser();
       const userId = data.user?.id;
       if (!userId) return;
+      const ownerId = await resolveOwnerId(userId);
       if (count === 0) {
         await supabase
           .from("game_marks")
           .delete()
-          .eq("user_id", userId)
+          .eq("user_id", ownerId)
           .eq("service", this.service)
           .eq("game_id", id)
           .eq("date", date);
@@ -77,7 +80,7 @@ export class DailyMarksService {
         await supabase
           .from("game_marks")
           .upsert(
-            { user_id: userId, service: this.service, game_id: id, date, count },
+            { user_id: ownerId, service: this.service, game_id: id, date, count },
             { onConflict: "user_id,service,game_id,date" },
           );
       }
@@ -92,11 +95,12 @@ export class DailyMarksService {
       const { data: u } = await supabase.auth.getUser();
       const userId = u.user?.id;
       if (!userId) return this.getToday();
+      const ownerId = await resolveOwnerId(userId);
       const key = dateKey(new Date());
       const { data } = await supabase
         .from("game_marks")
         .select("game_id,count")
-        .eq("user_id", userId)
+        .eq("user_id", ownerId)
         .eq("service", this.service)
         .eq("date", key);
       if (data) {

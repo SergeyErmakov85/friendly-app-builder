@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { resolveOwnerId } from "./accountLink";
 import type { ToyLogEntry } from "./types";
 
 /**
@@ -8,6 +9,10 @@ import type { ToyLogEntry } from "./types";
  *
  * В интерфейс отдаём фото как signed URL — это data-совместимо с прежним UI,
  * где `entry.photos` подставлялся в `<img src>`.
+ *
+ * Записи принадлежат общему владельцу связанных учёток (см. `accountLink.ts`),
+ * а файлы кладём в папку текущего пользователя — доступ к ней открыт всем
+ * учёткам одной «семьи».
  */
 
 const BUCKET = "toy-photos";
@@ -17,6 +22,11 @@ async function requireUser(): Promise<string> {
   const id = data.user?.id;
   if (!id) throw new Error("Требуется вход");
   return id;
+}
+
+/** Общий владелец данных: под ним лежат записи всех связанных учёток. */
+async function requireOwner(): Promise<string> {
+  return resolveOwnerId(await requireUser());
 }
 
 async function signPaths(paths: string[]): Promise<string[]> {
@@ -37,11 +47,11 @@ function extFromMime(mime: string): string {
 
 export const ToyLogService = {
   async list(): Promise<ToyLogEntry[]> {
-    const userId = await requireUser();
+    const ownerId = await requireOwner();
     const { data, error } = await supabase
       .from("toy_entries")
       .select("id,toy_name,description,photo_paths,created_at")
-      .eq("user_id", userId)
+      .eq("user_id", ownerId)
       .order("created_at", { ascending: false });
     if (error || !data) return [];
     return Promise.all(
@@ -61,6 +71,7 @@ export const ToyLogService = {
     files: File[];
   }): Promise<ToyLogEntry> {
     const userId = await requireUser();
+    const ownerId = await resolveOwnerId(userId);
     const entryId = crypto.randomUUID();
     const paths: string[] = [];
     for (let i = 0; i < entry.files.length; i++) {
@@ -77,7 +88,7 @@ export const ToyLogService = {
       .from("toy_entries")
       .insert({
         id: entryId,
-        user_id: userId,
+        user_id: ownerId,
         toy_name: entry.toyName,
         description: entry.description,
         photo_paths: paths,
@@ -95,16 +106,16 @@ export const ToyLogService = {
   },
 
   async remove(id: string): Promise<void> {
-    const userId = await requireUser();
+    const ownerId = await requireOwner();
     const { data } = await supabase
       .from("toy_entries")
       .select("photo_paths")
       .eq("id", id)
-      .eq("user_id", userId)
+      .eq("user_id", ownerId)
       .maybeSingle();
     if (data?.photo_paths?.length) {
       await supabase.storage.from(BUCKET).remove(data.photo_paths);
     }
-    await supabase.from("toy_entries").delete().eq("id", id).eq("user_id", userId);
+    await supabase.from("toy_entries").delete().eq("id", id).eq("user_id", ownerId);
   },
 };

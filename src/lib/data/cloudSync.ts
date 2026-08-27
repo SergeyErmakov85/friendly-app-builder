@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { clearOwnerCache, resolveOwnerId } from "./accountLink";
 import { DataService, EsdmService, SpeechGamesService } from "./DataService";
 import type { DataServiceImpl } from "./DataService";
 
@@ -9,6 +10,10 @@ import type { DataServiceImpl } from "./DataService";
  *
  * UI остаётся синхронным: локальные изменения применяются моментально,
  * запись в облако идёт в фоне.
+ *
+ * Строки в БД принадлежат не вошедшему пользователю, а общему владельцу
+ * связанных учёток (см. `accountLink.ts`), поэтому объединённые учётки
+ * работают с одной историей отметок и заметок.
  */
 
 const SERVICES: Record<string, DataServiceImpl> = {
@@ -20,11 +25,11 @@ const SERVICES: Record<string, DataServiceImpl> = {
 let currentUserId: string | null = null;
 let started = false;
 
-async function pullFor(serviceName: string, svc: DataServiceImpl, userId: string) {
+async function pullFor(serviceName: string, svc: DataServiceImpl, ownerId: string) {
   const { data: marks } = await supabase
     .from("game_marks")
     .select("game_id,date,count")
-    .eq("user_id", userId)
+    .eq("user_id", ownerId)
     .eq("service", serviceName);
 
   const history: Record<string, Record<string, number>> = {};
@@ -38,7 +43,7 @@ async function pullFor(serviceName: string, svc: DataServiceImpl, userId: string
   const { data: notes } = await supabase
     .from("game_notes")
     .select("game_id,note")
-    .eq("user_id", userId)
+    .eq("user_id", ownerId)
     .eq("service", serviceName);
   const noteMap: Record<string, string> = {};
   for (const row of notes ?? []) noteMap[row.game_id] = row.note;
@@ -50,19 +55,20 @@ function wireWrites() {
     svc.setSyncHandler(async (payload) => {
       if (!currentUserId) return;
       try {
+        const ownerId = await resolveOwnerId(currentUserId);
         if (payload.kind === "mark") {
           if (payload.count === 0) {
             await supabase
               .from("game_marks")
               .delete()
-              .eq("user_id", currentUserId)
+              .eq("user_id", ownerId)
               .eq("service", serviceName)
               .eq("game_id", payload.gameId)
               .eq("date", payload.date);
           } else {
             await supabase.from("game_marks").upsert(
               {
-                user_id: currentUserId,
+                user_id: ownerId,
                 service: serviceName,
                 game_id: payload.gameId,
                 date: payload.date,
@@ -76,13 +82,13 @@ function wireWrites() {
             await supabase
               .from("game_notes")
               .delete()
-              .eq("user_id", currentUserId)
+              .eq("user_id", ownerId)
               .eq("service", serviceName)
               .eq("game_id", payload.gameId);
           } else {
             await supabase.from("game_notes").upsert(
               {
-                user_id: currentUserId,
+                user_id: ownerId,
                 service: serviceName,
                 game_id: payload.gameId,
                 note: payload.note,
@@ -101,14 +107,16 @@ function wireWrites() {
 async function switchUser(userId: string | null) {
   currentUserId = userId;
   if (!userId) {
+    clearOwnerCache();
     for (const svc of Object.values(SERVICES)) {
       svc.replaceHistory({});
       svc.replaceNotes({});
     }
     return;
   }
+  const ownerId = await resolveOwnerId(userId);
   await Promise.all(
-    Object.entries(SERVICES).map(([name, svc]) => pullFor(name, svc, userId)),
+    Object.entries(SERVICES).map(([name, svc]) => pullFor(name, svc, ownerId)),
   );
   window.dispatchEvent(new CustomEvent("tracker:cloud-synced"));
 }
